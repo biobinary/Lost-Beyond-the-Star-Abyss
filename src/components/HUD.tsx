@@ -29,6 +29,10 @@ export const HUD = () => {
             <kbd className="px-2 py-1 bg-muted rounded text-xs font-mono text-primary border border-primary/30">MOUSE</kbd>
             <span className="text-sm text-foreground/70">Look</span>
           </div>
+          <div className="flex items-center gap-3">
+            <kbd className="px-2 py-1 bg-muted rounded text-xs font-mono text-primary border border-primary/30">R</kbd>
+            <span className="text-sm text-foreground/70">Reload</span>
+          </div>
         </div>
       </div>
 
