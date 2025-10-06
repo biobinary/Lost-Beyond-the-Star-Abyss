@@ -140,4 +140,9 @@ export class PlayerController {
     }
     // When not moving or in air, position is already set in updateMovement
   }
+
+  public getPosition(): THREE.Vector3 {
+    return this.camera.position.clone();
+  }
+
 }

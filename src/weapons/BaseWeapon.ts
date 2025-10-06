@@ -38,6 +38,7 @@ export abstract class BaseWeapon implements IWeapon {
     }
 
     public async load(camera: THREE.Object3D): Promise<void> {
+        
         const loader = new GLTFLoader();
         const textureLoader = new THREE.TextureLoader();
         
@@ -64,11 +65,17 @@ export abstract class BaseWeapon implements IWeapon {
             this.model.rotation.copy(this.initialRotation);
             this.model.add(this.muzzleLight);
 
+            if(camera == null)
+                return;
+
             camera.add(this.model);
+
         } catch (error) {
             console.error(`An error happened while loading ${this.config.name}:`, error);
             toast.error(`Failed to load ${this.config.name} model.`);
+        
         }
+
     }
 
     public update(elapsedTime: number, deltaTime: number): void {
