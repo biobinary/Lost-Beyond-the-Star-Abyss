@@ -11,8 +11,10 @@ const ShotgunConfig: WeaponConfig = {
     recoilDuration: 300,
     swayAmount: 0.002,
     swaySpeed: 1.0,
-    modelPath: '/models/kenney_blaster-kit_2.1/Models/GLB format/blaster-l.glb', // Ganti dengan model shotgun
-    texturePath: '/models/kenney_blaster-kit_2.1/Models/GLB format/Textures/colormap.png'
+    modelPath: '/models/low_poly_guns_fbx/shotguns/shotgun_1.fbx', // Ganti dengan model shotgun
+    texturePath: '/models/low_poly_guns_fbx/uv_palette.png',
+    gunPosition: new THREE.Vector3(0.5, -0.4, -0.7),
+    muzzlePosition: new THREE.Vector3(0, 0.05, -1.0)
 };
 
 export class Shotgun extends BaseWeapon {
@@ -33,8 +35,8 @@ export class Shotgun extends BaseWeapon {
         super.onFire();
 
         const muzzleLocal = this.config.muzzlePosition ? this.config.muzzlePosition.clone() : new THREE.Vector3(0, 0, -0.5);
-        const muzzleWorld = muzzleLocal.clone();
-        this.model.localToWorld(muzzleWorld);
+        const muzzleWorld = this.config.gunPosition.clone().add(muzzleLocal.clone());
+        camera.localToWorld(muzzleWorld);
 
         const baseDirection = new THREE.Vector3();
         camera.getWorldDirection(baseDirection);

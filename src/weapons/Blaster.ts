@@ -12,10 +12,10 @@ const BlasterConfig: WeaponConfig = {
     recoilDuration: 80,
     swayAmount: 0.003,
     swaySpeed: 1.5,
-    modelPath: '/models/kenney_blaster-kit_2.1/Models/GLB format/blaster-a.glb',
-    texturePath: '/models/kenney_blaster-kit_2.1/Models/GLB format/Textures/colormap.png',
+    modelPath: '/models/low_poly_guns_fbx/fusil/fusil_3.fbx',
+    texturePath: '/models/low_poly_guns_fbx/uv_palette.png',
     gunPosition: new THREE.Vector3(0.4, -0.3, -0.8),
-    muzzlePosition: new THREE.Vector3(0, 0.07, -0.5)
+    muzzlePosition: new THREE.Vector3(0, 0.05, -1.0)
 };
 
 export class Blaster extends BaseWeapon {
@@ -32,8 +32,8 @@ export class Blaster extends BaseWeapon {
 
         // Gunakan muzzlePosition dari config jika tersedia
         const muzzleLocal = this.config.muzzlePosition ? this.config.muzzlePosition.clone() : new THREE.Vector3(0, 0, -0.5);
-        const muzzleWorld = muzzleLocal.clone();
-        this.model.localToWorld(muzzleWorld);
+        const muzzleWorld = this.config.gunPosition.clone().add(muzzleLocal.clone());
+        camera.localToWorld(muzzleWorld);
 
         // PERBAIKAN: Gunakan arah kamera, bukan arah weapon model
         // Karena weapon mengikuti kamera, gunakan camera direction untuk akurasi
@@ -68,10 +68,13 @@ export class Blaster extends BaseWeapon {
                 }
                 parent = parent.parent;
             }
-            if (belongsToWeapon) continue;
+
+            if (belongsToWeapon) 
+                continue;
 
             // PERBAIKAN: Pastikan jarak hit masuk akal
-            if (inter.distance < 0.1) continue; // Skip hits yang terlalu dekat
+            if (inter.distance < 0.1) 
+                continue; // Skip hits yang terlalu dekat
 
             // Valid hit
             bulletEnd.copy(inter.point);
