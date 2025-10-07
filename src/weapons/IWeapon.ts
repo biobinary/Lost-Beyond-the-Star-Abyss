@@ -25,8 +25,9 @@ export interface IWeapon {
     config: WeaponConfig;
     ammo: number;
     maxAmmo: number;
+    reserveAmmo: number;  // Tambahan: Ammo cadangan untuk reload
 
-    load(camera: THREE.Object3D): Promise<void>;
+    load(camera?: THREE.Object3D): Promise<void>;
     update(elapsedTime: number, deltaTime: number): void;
     fire(camera: THREE.Camera, scene: THREE.Scene, effects: EffectsManager): void;
     reload(): void;

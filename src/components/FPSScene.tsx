@@ -22,7 +22,7 @@ export const FPSScene = () => {
     const playerController = new PlayerController(camera, inputManager, colliders);
     const effectsManager = new EffectsManager(scene);
     const weaponManager = new WeaponManager(camera, scene, effectsManager, inputManager);
-    const weaponSpawnManager = new WeaponSpawnManager(scene, weaponManager, playerController); // Inisialisasi spawn manager
+    const weaponSpawnManager = new WeaponSpawnManager(scene, weaponManager, playerController, effectsManager); // Inisialisasi spawn manager
 
     const clock = new THREE.Clock();
     const animate = () => {
@@ -31,7 +31,7 @@ export const FPSScene = () => {
 
       playerController.update(delta, elapsedTime);
       weaponManager.update(elapsedTime, delta);
-      weaponSpawnManager.update(delta); // Panggil update untuk spawn manager
+      weaponSpawnManager.update(elapsedTime, delta); // Panggil update untuk spawn manager
       
       renderer.render(scene, camera);
       requestAnimationFrame(animate);

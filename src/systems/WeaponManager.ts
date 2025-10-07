@@ -6,7 +6,8 @@ import { InputManager } from './InputManager';
 
 export class WeaponManager {
     
-    private currentWeapon: IWeapon | null = null;
+    private inventory: IWeapon[] = [];
+    private currentWeaponIndex: number = -1;
     private camera: THREE.Camera;
     private scene: THREE.Scene;
     private effects: EffectsManager;
@@ -19,34 +20,101 @@ export class WeaponManager {
         this.input = input;
     }
 
-    public async equip(weapon: IWeapon) {
-        // Unequip dan dispose senjata sebelumnya jika ada
-        if (this.currentWeapon) {
-            if (this.currentWeapon.model) {
-                this.camera.remove(this.currentWeapon.model);
+    public async addWeapon(weapon: IWeapon) {
+
+        // Cek duplikat berdasarkan config.name
+        const existingIndex = this.inventory.findIndex(w => w.config.name === weapon.config.name);
+        
+        if (existingIndex >= 0) {
+            const existing = this.inventory[existingIndex];
+            existing.reserveAmmo += weapon.maxAmmo;
+            console.log(`Added ammo to existing ${weapon.config.name}! Reserve now: ${existing.reserveAmmo}`);
+            return;
+        }
+
+        // Bukan duplikat: Tambah ke inventory
+        if (this.currentWeaponIndex >= 0 && this.inventory[this.currentWeaponIndex]) {
+            const current = this.inventory[this.currentWeaponIndex];
+            if (current.model) {
+                this.camera.remove(current.model);
             }
-            this.currentWeapon.dispose();
         }
-        
-        this.currentWeapon = weapon;
-        await this.currentWeapon.load(this.camera);
+
+        this.inventory.push(weapon);
+        this.currentWeaponIndex = this.inventory.length - 1;
+
+        await this.inventory[this.currentWeaponIndex].load(this.camera);
+        console.log(`Added new ${weapon.config.name} to inventory!`);
+
     }
 
-    // Pastikan Anda memiliki clock di game loop utama Anda untuk mendapatkan deltaTime
+    public async switchToWeapon(index: number) {
+        
+        if (index < 0 || index >= this.inventory.length || index === this.currentWeaponIndex) {
+            return;
+        }
+
+        if (this.currentWeaponIndex >= 0 && this.inventory[this.currentWeaponIndex]) {
+            const current = this.inventory[this.currentWeaponIndex];
+            if (current.model) {
+                this.camera.remove(current.model);
+            }
+        }
+
+        this.currentWeaponIndex = index;
+        await this.inventory[this.currentWeaponIndex].load(this.camera);
+    
+    }
+
     public update(elapsedTime: number, deltaTime: number) {
-        if (!this.currentWeapon || !this.input.isPointerLocked) return;
-        
-        // Kirim deltaTime ke update senjata untuk animasi yang mulus
-        this.currentWeapon.update(elapsedTime, deltaTime);
-        
+
+        const currentWeapon = this.getCurrentWeapon();
+        if (!currentWeapon || !this.input.isPointerLocked) return;
+
+        // Update animasi senjata current
+        currentWeapon.update(elapsedTime, deltaTime);
+
+        // Shooting
         if (this.input.isShooting) {
-            this.currentWeapon.fire(this.camera as THREE.PerspectiveCamera, this.scene, this.effects);
+            currentWeapon.fire(this.camera as THREE.PerspectiveCamera, this.scene, this.effects);
         }
 
-        // Tambahkan input untuk reload, contoh:
+        // Reload
         if (this.input.isReloading) {
-            this.currentWeapon.reload();
-            this.input.isReloading = false; // Reset state reload setelah dipanggil
+            currentWeapon.reload();
+            this.input.isReloading = false;
         }
+
+        // Switch senjata via wheel (one-time trigger)
+        if (this.input.scrollDirection !== 0) {
+            const direction = this.input.scrollDirection;
+            let newIndex = this.currentWeaponIndex + direction;
+
+            // Wrap around (cyclic switch)
+            if (newIndex < 0) newIndex = this.inventory.length - 1;
+            if (newIndex >= this.inventory.length) newIndex = 0;
+
+            this.switchToWeapon(newIndex);
+            this.input.scrollDirection = 0;  // Reset
+        }
+
     }
+
+    // Helper: Get senjata current
+    private getCurrentWeapon(): IWeapon | null {
+        return this.currentWeaponIndex >= 0 ? this.inventory[this.currentWeaponIndex] : null;
+    }
+
+    // Dispose semua senjata (panggil di akhir game)
+    public disposeAll(): void {
+        this.inventory.forEach(weapon => {
+            if (weapon.model) {
+                this.camera.remove(weapon.model);
+            }
+            weapon.dispose();
+        });
+        this.inventory = [];
+        this.currentWeaponIndex = -1;
+    }
+
 }

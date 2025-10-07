@@ -10,6 +10,7 @@ export abstract class BaseWeapon implements IWeapon {
   public config: WeaponConfig;
   public ammo: number;
   public maxAmmo: number;
+  public reserveAmmo: number = 0;
 
   protected lastShotTime = 0;
   private muzzleLight: THREE.PointLight;
@@ -27,6 +28,7 @@ export abstract class BaseWeapon implements IWeapon {
     this.config = config;
     this.maxAmmo = maxAmmo;
     this.ammo = maxAmmo;
+    this.reserveAmmo = 0;
 
     this.initialPosition = config.gunPosition
       ? config.gunPosition.clone()
@@ -40,15 +42,12 @@ export abstract class BaseWeapon implements IWeapon {
     
   }
 
-  public async load(camera: THREE.Object3D): Promise<void> {
-    
+  public async load(camera?: THREE.Object3D): Promise<void> {  // Camera opsional
     const loader = new FBXLoader();
     const textureLoader = new THREE.TextureLoader();
 
     try {
-
-      if(this.model == null) {
-
+      if (this.model == null) {
         const [fbx, colorTexture] = await Promise.all([
           loader.loadAsync(this.config.modelPath),
           textureLoader.loadAsync(this.config.texturePath),
@@ -65,7 +64,6 @@ export abstract class BaseWeapon implements IWeapon {
             child.castShadow = false;
           }
         });
-
       }
 
       this.model.position.copy(this.initialPosition);
@@ -73,24 +71,21 @@ export abstract class BaseWeapon implements IWeapon {
       this.model.scale.copy(this.initialScale);
       this.model.add(this.muzzleLight);
 
-      if (camera) {
-
+      if (camera) {  // Hanya jika camera disediakan (untuk held weapon)
         const muzzleLocal = this.config.muzzlePosition ? this.config.muzzlePosition.clone() : new THREE.Vector3(0, 0, -0.5);
-        const muzzleWorld = this.config.gunPosition.clone().add(muzzleLocal.clone());
+        const muzzleWorld = this.config.gunPosition ? this.config.gunPosition.clone().add(muzzleLocal) : muzzleLocal.clone();
         camera.localToWorld(muzzleWorld);
         this.muzzleLight.position.copy(muzzleWorld);
         camera.add(this.model);
-
       }
     
     } catch (error) {
       console.error(`❌ Error loading FBX weapon ${this.config.name}:`, error);
       toast.error(`Failed to load FBX model for ${this.config.name}.`);
-    
     }
-
   }
 
+  // ... (sisa method sama seperti sebelumnya: update, fire, reload, dll.)
   public update(elapsedTime: number, deltaTime: number): void {
     if (!this.model) return;
     this.handleSway(elapsedTime);
@@ -104,8 +99,17 @@ export abstract class BaseWeapon implements IWeapon {
   ): void;
 
   public reload(): void {
-    console.log(`${this.config.name} reloading...`);
-    this.ammo = this.maxAmmo;
+    if (this.reserveAmmo >= this.maxAmmo) {
+      this.reserveAmmo -= this.maxAmmo;
+      this.ammo = this.maxAmmo;
+    } else if (this.reserveAmmo > 0) {
+      this.ammo = this.reserveAmmo;
+      this.reserveAmmo = 0;
+    } else {
+      console.log(`${this.config.name} no reserve ammo to reload!`);
+      return;
+    }
+    console.log(`${this.config.name} reloaded. Clip: ${this.ammo}/${this.maxAmmo}, Reserve: ${this.reserveAmmo}`);
   }
 
   protected canShoot(): boolean {

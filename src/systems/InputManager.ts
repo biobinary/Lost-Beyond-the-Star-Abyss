@@ -16,6 +16,8 @@ export class InputManager {
     dy: 0,
   };
   
+  public scrollDirection = 0;
+
   public isPointerLocked = false;
   public justJumped = false;
   public isShooting = false;
@@ -36,6 +38,7 @@ export class InputManager {
     document.addEventListener("keyup", this.onKeyUp);
     document.addEventListener("mousedown", this.onMouseDown);
     document.addEventListener("mouseup", this.onMouseUp);
+    document.addEventListener("wheel", this.onWheel, { passive: false });
   }
 
   public dispose() {
@@ -46,6 +49,7 @@ export class InputManager {
     document.removeEventListener("keyup", this.onKeyUp);
     document.removeEventListener("mousedown", this.onMouseDown);
     document.removeEventListener("mouseup", this.onMouseUp);
+    document.removeEventListener("wheel", this.onWheel);
   }
 
   private requestPointerLock = () => {
@@ -66,6 +70,12 @@ export class InputManager {
     this.mouse.dx = 0;
     this.mouse.dy = 0;
   }
+
+  private onWheel = (event: WheelEvent) => {
+    if (!this.isPointerLocked) return;
+    event.preventDefault();
+    this.scrollDirection = event.deltaY > 0 ? 1 : -1;
+  };
 
   private onKeyDown = (event: KeyboardEvent) => {
     switch (event.code) {
