@@ -1,6 +1,8 @@
 // src/hooks/useThreeSetup.ts
 import { useEffect, useState } from "react";
 import * as THREE from "three";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { toast } from "sonner";
 
 export const useThreeSetup = (containerRef: React.RefObject<HTMLDivElement>) => {
   const [threeObjects, setThreeObjects] = useState<{
@@ -60,31 +62,80 @@ export const useThreeSetup = (containerRef: React.RefObject<HTMLDivElement>) => 
     scene.add(directionalLight);
 
     // Environment Setup
-    const floorGeometry = new THREE.PlaneGeometry(50, 50);
-    const floorMaterial = new THREE.MeshStandardMaterial({
-      color: 0x555555,
-      roughness: 0.4,
-      metalness: 0.6,
-    });
-    const floor = new THREE.Mesh(floorGeometry, floorMaterial);
-    floor.rotation.x = -Math.PI / 2;
-    floor.receiveShadow = true;
-    scene.add(floor);
+    async function loadTile(modelName: string, xPos, zPos, deg){
+      const modelPath = '../../models/SciFiLike Asset/tiles/rooms/' + modelName
+      let model
 
-    const boxGeometry = new THREE.BoxGeometry(3, 3, 3);
-    const boxMaterial = new THREE.MeshStandardMaterial({
-      color: 0x8888aa,
-      roughness: 0.6,
-      metalness: 0.7,
-      envMap: skybox,
-      envMapIntensity: 0.8
-    });
+      try {
+        const loader = new GLTFLoader();
+        // const textureLoader = new THREE.TextureLoader();
 
-    const box = new THREE.Mesh(boxGeometry, boxMaterial);
-    box.position.set(0, 1.5, 0);
-    box.castShadow = true;
-    box.receiveShadow = true;
-    scene.add(box);
+        loader.load(modelPath, function(gltf){
+          model = gltf.scene;
+          
+          model.traverse((child) => {
+            if (child instanceof THREE.Mesh && (child.material instanceof THREE.MeshStandardMaterial || child.material instanceof THREE.MeshPhongMaterial)) {
+              child.castShadow = true;
+              child.receiveShadow = true;
+            }
+          });
+
+          model.scale.x = 1.5
+          model.scale.y = 1.5
+          model.scale.z = 1.5
+          
+          model.position.x = xPos
+          model.position.z = zPos
+          model.position.y = -0.2
+
+          model.rotation.y = deg * Math.PI / 180
+
+          scene.add(model)
+        })
+
+        
+      } catch (error) {
+        console.error(`❌ Error loading FBX weapon ${modelName}:`, error);
+        toast.error(`Failed to load FBX model for ${modelName}.`);
+      
+      }
+    }
+
+    loadTile('Room_MTN_Corner_5.glb', 0, 0, 90);
+    loadTile('Room_MTN_Corner_2.glb', 6, 0, -90);
+    loadTile('Room_MTN_Corner_2.glb', -6, 0, 90);
+    loadTile('Room_MTN_Corner_2.glb', 0, 6, 180);
+    loadTile('Room_MTN_Corner_1.glb', 6, 6, 180);
+    loadTile('Room_MTN_Corner_1.glb', -6, 6, 90);
+    loadTile('Room_MTN_Corner_1.glb', 6, -6, -90);
+    loadTile('Room_MTN_Corner_1.glb', -6, -6, 0);
+    loadTile('Room_MTN_Door_Corner_A_2.glb', 0, -6, 0);
+
+    // const floorGeometry = new THREE.PlaneGeometry(50, 50);
+    // const floorMaterial = new THREE.MeshStandardMaterial({
+    //   color: 0x555555,
+    //   roughness: 0.4,
+    //   metalness: 0.6,
+    // });
+    // const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+    // floor.rotation.x = -Math.PI / 2;
+    // floor.receiveShadow = true;
+    // scene.add(floor);
+
+    // const boxGeometry = new THREE.BoxGeometry(3, 3, 3);
+    // const boxMaterial = new THREE.MeshStandardMaterial({
+    //   color: 0x8888aa,
+    //   roughness: 0.6,
+    //   metalness: 0.7,
+    //   envMap: skybox,
+    //   envMapIntensity: 0.8
+    // });
+
+    // const box = new THREE.Mesh(boxGeometry, boxMaterial);
+    // box.position.set(0, 1.5, 0);
+    // box.castShadow = true;
+    // box.receiveShadow = true;
+    // scene.add(box);
 
     setThreeObjects({ scene, camera, renderer });
 

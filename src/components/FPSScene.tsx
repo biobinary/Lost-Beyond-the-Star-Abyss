@@ -1,7 +1,7 @@
 // src/components/FPSScene.tsx
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
-import { useThreeSetup } from "../hooks/useThreeSetup";
+import { useThreeSetup } from "../hooks/useThreeSetup copy";
 import { InputManager } from "../systems/InputManager";
 import { PlayerController } from "../systems/PlayerController";
 import { WeaponManager } from "../systems/WeaponManager";
