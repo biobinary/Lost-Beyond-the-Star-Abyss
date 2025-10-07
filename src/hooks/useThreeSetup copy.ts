@@ -110,6 +110,26 @@ export const useThreeSetup = (containerRef: React.RefObject<HTMLDivElement>) => 
     loadObject('tiles/rooms/Room_MTN_Corner_1.glb', 6, -0.2, -6, -90);
     loadObject('tiles/rooms/Room_MTN_Corner_1.glb', -6, -0.2, -6, 0);
     loadObject('tiles/rooms/Room_MTN_Door_Corner_A_2.glb', 0, -0.2, -6, 0);
+
+    let pointLight = new THREE.PointLight(0xffffff, 8);
+    pointLight.position.set(3, 5, 3);
+    pointLight.castShadow = true;
+    scene.add(pointLight);
+
+    pointLight = new THREE.PointLight(0xffffff, 8);
+    pointLight.position.set(-3, 5, -3);
+    pointLight.castShadow = true;
+    scene.add(pointLight);
+
+    pointLight = new THREE.PointLight(0xffffff, 8);
+    pointLight.position.set(-3, 5, 3);
+    pointLight.castShadow = true;
+    scene.add(pointLight);
+
+    pointLight = new THREE.PointLight(0xffffff, 8);
+    pointLight.position.set(3, 5, -3);
+    pointLight.castShadow = true;
+    scene.add(pointLight);
     
     loadObject('tiles/walls/Wall_MTNDoor_End_2.glb', 0, -0.2, -13.5, 180);
     loadObject('tiles/walls/Wall_MTNDoor_End_2.glb', 0, -0.2, -22.5, 0);
