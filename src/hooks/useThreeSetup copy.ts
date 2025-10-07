@@ -9,6 +9,7 @@ export const useThreeSetup = (containerRef: React.RefObject<HTMLDivElement>) => 
     scene: THREE.Scene;
     camera: THREE.PerspectiveCamera;
     renderer: THREE.WebGLRenderer;
+    colliders: THREE.Mesh[];
   } | null>(null);
 
   useEffect(() => {
@@ -27,6 +28,7 @@ export const useThreeSetup = (containerRef: React.RefObject<HTMLDivElement>) => 
     currentContainer.appendChild(renderer.domElement);
 
     const scene = new THREE.Scene();
+    const colliders: THREE.Mesh[] = [];
 
     const skyboxLoader = new THREE.CubeTextureLoader();
     const skybox = skyboxLoader.load([
@@ -51,8 +53,8 @@ export const useThreeSetup = (containerRef: React.RefObject<HTMLDivElement>) => 
     directionalLight.position.set(10, 15, 5);
     directionalLight.castShadow = true;
 
-    directionalLight.shadow.mapSize.width = 2048;
-    directionalLight.shadow.mapSize.height = 2048;
+    directionalLight.shadow.mapSize.width = 512;
+    directionalLight.shadow.mapSize.height = 512;
     directionalLight.shadow.camera.near = 0.5;
     directionalLight.shadow.camera.far = 50;
     directionalLight.shadow.camera.left = -25;
@@ -62,7 +64,7 @@ export const useThreeSetup = (containerRef: React.RefObject<HTMLDivElement>) => 
     scene.add(directionalLight);
 
     // Environment Setup
-    async function loadObject(modelName: string, xPos, yPos = 0.2, zPos, deg){
+    async function loadObject(modelName: string, xPos, yPos, zPos, deg){
       const modelPath = '../../models/SciFiLike Asset/' + modelName
       let model
 
@@ -111,30 +113,68 @@ export const useThreeSetup = (containerRef: React.RefObject<HTMLDivElement>) => 
     loadObject('tiles/rooms/Room_MTN_Corner_1.glb', -6, -0.2, -6, 0);
     loadObject('tiles/rooms/Room_MTN_Door_Corner_A_2.glb', 0, -0.2, -6, 0);
 
-    let pointLight = new THREE.PointLight(0xffffff, 8);
-    pointLight.position.set(3, 5, 3);
+    let pointLight = new THREE.PointLight(0xffffff, 7);
+    pointLight.position.set(3, 4.5, 3);
     pointLight.castShadow = true;
+    pointLight.shadow.camera.near = 0.5;
+    pointLight.shadow.camera.far = 20;
     scene.add(pointLight);
 
-    pointLight = new THREE.PointLight(0xffffff, 8);
-    pointLight.position.set(-3, 5, -3);
+    pointLight = new THREE.PointLight(0xffffff, 7);
+    pointLight.position.set(-3, 4.5, -3);
     pointLight.castShadow = true;
+    pointLight.shadow.camera.near = 0.5;
+    pointLight.shadow.camera.far = 20;
     scene.add(pointLight);
 
-    pointLight = new THREE.PointLight(0xffffff, 8);
-    pointLight.position.set(-3, 5, 3);
+    pointLight = new THREE.PointLight(0xffffff, 7);
+    pointLight.position.set(-3, 4.5, 3);
     pointLight.castShadow = true;
+    pointLight.shadow.camera.near = 0.5;
+    pointLight.shadow.camera.far = 20;
     scene.add(pointLight);
 
-    pointLight = new THREE.PointLight(0xffffff, 8);
-    pointLight.position.set(3, 5, -3);
+    pointLight = new THREE.PointLight(0xffffff, 7);
+    pointLight.position.set(3, 4.5, -3);
     pointLight.castShadow = true;
+    pointLight.shadow.camera.near = 0.5;
+    pointLight.shadow.camera.far = 20;
     scene.add(pointLight);
     
     loadObject('tiles/walls/Wall_MTNDoor_End_2.glb', 0, -0.2, -13.5, 180);
     loadObject('tiles/walls/Wall_MTNDoor_End_2.glb', 0, -0.2, -22.5, 0);
     loadObject('tiles/rooms/Room_2.glb', 0, -0.2, -22.5, 90);
     loadObject('tiles/rooms/Room_2.glb', 0, -0.2, -13.5, 90);
+
+    pointLight = new THREE.PointLight(0xffffff, 8);
+    pointLight.position.set(0, 7, -13.5);
+    pointLight.castShadow = true;
+    pointLight.shadow.camera.near = 0.5;
+    pointLight.shadow.camera.far = 20;
+    scene.add(pointLight);
+
+    pointLight = new THREE.PointLight(0xffffff, 8);
+    pointLight.position.set(0, 7, -22.5);
+    pointLight.castShadow = true;
+    pointLight.shadow.camera.near = 0.5;
+    pointLight.shadow.camera.far = 20;
+    scene.add(pointLight);
+
+    const boxGeometry = new THREE.BoxGeometry(3, 3, 3);
+    const boxMaterial = new THREE.MeshStandardMaterial({
+      color: 0x8888aa,
+      roughness: 0.6,
+      metalness: 0.7,
+      envMap: skybox,
+      envMapIntensity: 0.8
+    });
+
+    const box = new THREE.Mesh(boxGeometry, boxMaterial);
+    box.position.set(0, 1.5, 0);
+    box.castShadow = true;
+    box.receiveShadow = true;
+    scene.add(box);
+    colliders.push(box);
 
     // const floorGeometry = new THREE.PlaneGeometry(50, 50);
     // const floorMaterial = new THREE.MeshStandardMaterial({
@@ -162,7 +202,7 @@ export const useThreeSetup = (containerRef: React.RefObject<HTMLDivElement>) => 
     // box.receiveShadow = true;
     // scene.add(box);
 
-    setThreeObjects({ scene, camera, renderer });
+    setThreeObjects({ scene, camera, renderer, colliders });
 
     // --- Handlers & Cleanup ---
     const handleResize = () => {
