@@ -29,6 +29,7 @@ export class WeaponManager {
             const existing = this.inventory[existingIndex];
             existing.reserveAmmo += weapon.maxAmmo;
             console.log(`Added ammo to existing ${weapon.config.name}! Reserve now: ${existing.reserveAmmo}`);
+            this.updateHUD();
             return;
         }
 
@@ -45,6 +46,7 @@ export class WeaponManager {
 
         await this.inventory[this.currentWeaponIndex].load(this.camera);
         console.log(`Added new ${weapon.config.name} to inventory!`);
+        this.updateHUD();
 
     }
 
@@ -63,6 +65,7 @@ export class WeaponManager {
 
         this.currentWeaponIndex = index;
         await this.inventory[this.currentWeaponIndex].load(this.camera);
+        this.updateHUD(); // Update HUD setelah switch senjata
     
     }
 
@@ -76,13 +79,21 @@ export class WeaponManager {
 
         // Shooting
         if (this.input.isShooting) {
+            
+            const previousAmmo = currentWeapon.ammo;
             currentWeapon.fire(this.camera as THREE.PerspectiveCamera, this.scene, this.effects);
+            
+            if (currentWeapon.ammo !== previousAmmo) {
+                this.updateHUD();
+            }
+
         }
 
         // Reload
         if (this.input.isReloading) {
             currentWeapon.reload();
             this.input.isReloading = false;
+            this.updateHUD(); // Update HUD setelah reload
         }
 
         // Switch senjata via wheel (one-time trigger)
@@ -96,6 +107,26 @@ export class WeaponManager {
 
             this.switchToWeapon(newIndex);
             this.input.scrollDirection = 0;  // Reset
+        }
+
+    }
+
+    private updateHUD() {
+        
+        const currentWeapon = this.getCurrentWeapon();
+        
+        if (currentWeapon) {
+            const weaponInfo = {
+                name: currentWeapon.config.name,
+                ammo: currentWeapon.ammo,
+                maxAmmo: currentWeapon.maxAmmo,
+                reserveAmmo: currentWeapon.reserveAmmo,
+                weaponIndex: this.currentWeaponIndex,
+                totalWeapons: this.inventory.length
+            };
+
+            // Dispatch custom event untuk HUD
+            window.dispatchEvent(new CustomEvent('weaponUpdate', { detail: weaponInfo }));
         }
 
     }
