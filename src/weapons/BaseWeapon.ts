@@ -47,22 +47,26 @@ export abstract class BaseWeapon implements IWeapon {
 
     try {
 
-      const [fbx, colorTexture] = await Promise.all([
-        loader.loadAsync(this.config.modelPath),
-        textureLoader.loadAsync(this.config.texturePath),
-      ]);
+      if(this.model == null) {
 
-      colorTexture.colorSpace = THREE.SRGBColorSpace;
+        const [fbx, colorTexture] = await Promise.all([
+          loader.loadAsync(this.config.modelPath),
+          textureLoader.loadAsync(this.config.texturePath),
+        ]);
 
-      this.model = fbx;
-      this.model.traverse((child) => {
-        if (child instanceof THREE.Mesh && (child.material instanceof THREE.MeshStandardMaterial || child.material instanceof THREE.MeshPhongMaterial)) {
-          child.material.color.set(0xffffff);
-          child.material.map = colorTexture;
-          child.material.needsUpdate = true;
-          child.castShadow = false;
-        }
-      });
+        colorTexture.colorSpace = THREE.SRGBColorSpace;
+
+        this.model = fbx;
+        this.model.traverse((child) => {
+          if (child instanceof THREE.Mesh && (child.material instanceof THREE.MeshStandardMaterial || child.material instanceof THREE.MeshPhongMaterial)) {
+            child.material.color.set(0xffffff);
+            child.material.map = colorTexture;
+            child.material.needsUpdate = true;
+            child.castShadow = false;
+          }
+        });
+
+      }
 
       this.model.position.copy(this.initialPosition);
       this.model.rotation.copy(this.initialRotation);

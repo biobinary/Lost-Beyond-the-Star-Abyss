@@ -23,10 +23,7 @@ export const FPSScene = () => {
     const effectsManager = new EffectsManager(scene);
     const weaponManager = new WeaponManager(camera, scene, effectsManager, inputManager);
     const weaponSpawnManager = new WeaponSpawnManager(scene, weaponManager, playerController); // Inisialisasi spawn manager
-
-    const initialWeapon = new Shotgun();
-    weaponManager.equip(initialWeapon);
-    
+        
     const clock = new THREE.Clock();
     const animate = () => {
       const delta = clock.getDelta();

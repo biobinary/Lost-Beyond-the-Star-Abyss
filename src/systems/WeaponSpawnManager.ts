@@ -53,7 +53,7 @@ export class WeaponSpawnManager {
             this.scene.add(spawnPoint.model);
         
             let auraSpawnPoint = new THREE.Vector3().copy(spawnPoint.position);
-            auraSpawnPoint.y -= spawnPoint.position.y * 0.9; // Letakkan sedikit di bawah senjata
+            auraSpawnPoint.y -= spawnPoint.position.y * 0.85; // Letakkan sedikit di bawah senjata
             spawnPoint.aura = new EffectsManager(this.scene).createWeaponAura(auraSpawnPoint);
         
         }
@@ -65,6 +65,7 @@ export class WeaponSpawnManager {
         
             const spawnPoint = this.spawnPoints[i];
             if (spawnPoint.model) {
+
                 // Animasi rotasi dan melayang
                 spawnPoint.model.rotation.y += deltaTime * 0.5;
                 spawnPoint.model.position.y = spawnPoint.position.y + Math.sin(Date.now() * 0.001) * 0.25;
@@ -77,11 +78,11 @@ export class WeaponSpawnManager {
                     this.weaponManager.equip(spawnPoint.weapon);
                     
                     if (spawnPoint.model) {
-                        this.scene.remove(spawnPoint.model);
                         this.scene.remove(spawnPoint.aura!);
                     }
                     
                     this.spawnPoints.splice(i, 1);
+                    
                 }
             }
             
