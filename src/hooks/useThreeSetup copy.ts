@@ -62,8 +62,8 @@ export const useThreeSetup = (containerRef: React.RefObject<HTMLDivElement>) => 
     scene.add(directionalLight);
 
     // Environment Setup
-    async function loadTile(modelName: string, xPos, zPos, deg){
-      const modelPath = '../../models/SciFiLike Asset/tiles/rooms/' + modelName
+    async function loadObject(modelName: string, xPos, yPos = 0.2, zPos, deg){
+      const modelPath = '../../models/SciFiLike Asset/' + modelName
       let model
 
       try {
@@ -86,7 +86,7 @@ export const useThreeSetup = (containerRef: React.RefObject<HTMLDivElement>) => 
           
           model.position.x = xPos
           model.position.z = zPos
-          model.position.y = -0.2
+          model.position.y = yPos
 
           model.rotation.y = deg * Math.PI / 180
 
@@ -101,15 +101,20 @@ export const useThreeSetup = (containerRef: React.RefObject<HTMLDivElement>) => 
       }
     }
 
-    loadTile('Room_MTN_Corner_5.glb', 0, 0, 90);
-    loadTile('Room_MTN_Corner_2.glb', 6, 0, -90);
-    loadTile('Room_MTN_Corner_2.glb', -6, 0, 90);
-    loadTile('Room_MTN_Corner_2.glb', 0, 6, 180);
-    loadTile('Room_MTN_Corner_1.glb', 6, 6, 180);
-    loadTile('Room_MTN_Corner_1.glb', -6, 6, 90);
-    loadTile('Room_MTN_Corner_1.glb', 6, -6, -90);
-    loadTile('Room_MTN_Corner_1.glb', -6, -6, 0);
-    loadTile('Room_MTN_Door_Corner_A_2.glb', 0, -6, 0);
+    loadObject('tiles/rooms/Room_MTN_Corner_5.glb', 0, -0.2, 0, 90);
+    loadObject('tiles/rooms/Room_MTN_Corner_2.glb', 6, -0.2, 0, -90);
+    loadObject('tiles/rooms/Room_MTN_Corner_2.glb', -6, -0.2, 0, 90);
+    loadObject('tiles/rooms/Room_MTN_Corner_2.glb', 0, -0.2, 6, 180);
+    loadObject('tiles/rooms/Room_MTN_Corner_1.glb', 6, -0.2, 6, 180);
+    loadObject('tiles/rooms/Room_MTN_Corner_1.glb', -6, -0.2, 6, 90);
+    loadObject('tiles/rooms/Room_MTN_Corner_1.glb', 6, -0.2, -6, -90);
+    loadObject('tiles/rooms/Room_MTN_Corner_1.glb', -6, -0.2, -6, 0);
+    loadObject('tiles/rooms/Room_MTN_Door_Corner_A_2.glb', 0, -0.2, -6, 0);
+    
+    loadObject('tiles/walls/Wall_MTNDoor_End_2.glb', 0, -0.2, -13.5, 180);
+    loadObject('tiles/walls/Wall_MTNDoor_End_2.glb', 0, -0.2, -22.5, 0);
+    loadObject('tiles/rooms/Room_2.glb', 0, -0.2, -22.5, 90);
+    loadObject('tiles/rooms/Room_2.glb', 0, -0.2, -13.5, 90);
 
     // const floorGeometry = new THREE.PlaneGeometry(50, 50);
     // const floorMaterial = new THREE.MeshStandardMaterial({
