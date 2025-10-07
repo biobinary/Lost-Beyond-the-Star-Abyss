@@ -19,7 +19,8 @@ export class PlayerController {
   private yaw = 0;
   private pitch = 0;
 
-  private playerBox = new THREE.Box3();
+  private raycaster = new THREE.Raycaster();
+  private readonly PLAYER_RADIUS = 0.8; // Jarak aman dari dinding
 
   // Constants
   private readonly PLAYER_HEIGHT = 1.8;
@@ -33,6 +34,9 @@ export class PlayerController {
     
     // Set initial camera position
     this.camera.position.set(0, this.PLAYER_HEIGHT, 5);
+
+    this.raycaster.near = 0;
+    this.raycaster.far = this.PLAYER_RADIUS + 0.1;
   }
 
   /** Dipanggil setiap frame */
@@ -87,11 +91,12 @@ export class PlayerController {
       direction.applyQuaternion(yawQuat);
 
       // Apply air control multiplier when in air
-      const speedMultiplier = this.isGrounded ? 1 : this.airControl;
-      const moveAmount = direction.multiplyScalar(currentSpeed * speedMultiplier * delta);
       
-      this.checkCollisionsAndMove('x', moveAmount.x);
-      this.checkCollisionsAndMove('z', moveAmount.z);
+      if (!this.checkCollision(direction)) {
+        const speedMultiplier = this.isGrounded ? 1 : this.airControl;
+        const moveAmount = direction.multiplyScalar(currentSpeed * speedMultiplier * delta);
+        this.camera.position.add(moveAmount);
+      }
 
       // // Move camera horizontally
       // const horizontalMovement = direction.multiplyScalar(currentSpeed * speedMultiplier * delta);
@@ -130,35 +135,20 @@ export class PlayerController {
     }
   }
 
-    private checkCollisionsAndMove(axis: 'x' | 'y' | 'z', moveAmount: number) {
-    if (moveAmount === 0) return;
+  private checkCollision(direction: THREE.Vector3): boolean {
+    if (this.colliders.length === 0) return false;
 
-    // Simpan posisi asli
-    const originalPosition = this.camera.position[axis];
+    // Atur posisi dan arah raycaster
+    const raycastOrigin = this.camera.position.clone();
+    raycastOrigin.y -= this.PLAYER_HEIGHT / 2;
+    this.raycaster.set(raycastOrigin, direction);
 
-    // Pindahkan pemain ke posisi potensial baru
-    this.camera.position[axis] += moveAmount;
-    
-    // Perbarui bounding box pemain
-    // Kita buat sedikit lebih kecil dari tinggi pemain agar tidak mudah tersangkut
-    this.playerBox.setFromCenterAndSize(
-        this.camera.position, 
-        new THREE.Vector3(0.5, this.PLAYER_HEIGHT, 0.5)
-    );
+    // Cek persimpangan dengan semua objek collider
+    const intersections = this.raycaster.intersectObjects(this.colliders);
 
-    let collisionDetected = false;
-    for (const collider of this.colliders) {
-        const colliderBox = new THREE.Box3().setFromObject(collider);
-        if (this.playerBox.intersectsBox(colliderBox)) {
-            collisionDetected = true;
-            break; // Keluar dari loop jika sudah terdeteksi tabrakan
-        }
-    }
-
-    if (collisionDetected) {
-        // Jika terjadi tabrakan, kembalikan pemain ke posisi asli
-        this.camera.position[axis] = originalPosition;
-    }
+    // Jika ada objek yang terdeteksi dalam jangkauan PLAYER_RADIUS,
+    // berarti akan terjadi tabrakan.
+    return intersections.length > 0;
   }
 
   /** Efek kamera bobbing saat berjalan */

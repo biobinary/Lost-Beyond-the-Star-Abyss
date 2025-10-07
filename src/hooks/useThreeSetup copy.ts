@@ -79,6 +79,7 @@ export const useThreeSetup = (containerRef: React.RefObject<HTMLDivElement>) => 
             if (child instanceof THREE.Mesh && (child.material instanceof THREE.MeshStandardMaterial || child.material instanceof THREE.MeshPhongMaterial)) {
               child.castShadow = true;
               child.receiveShadow = true;
+              colliders.push(child);
             }
           });
 
