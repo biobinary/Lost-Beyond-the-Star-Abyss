@@ -65,7 +65,7 @@ export const useThreeSetup = (containerRef: React.RefObject<HTMLDivElement>) => 
 
     // Environment Setup
     async function loadObject(modelName: string, xPos, yPos, zPos, deg){
-      const modelPath = '../../models/SciFiLike Asset/' + modelName
+      const modelPath = '../../models/' + modelName
       let model
 
       try {
@@ -104,15 +104,7 @@ export const useThreeSetup = (containerRef: React.RefObject<HTMLDivElement>) => 
       }
     }
 
-    loadObject('tiles/rooms/Room_MTN_Corner_5.glb', 0, -0.2, 0, 90);
-    loadObject('tiles/rooms/Room_MTN_Corner_2.glb', 6, -0.2, 0, -90);
-    loadObject('tiles/rooms/Room_MTN_Corner_2.glb', -6, -0.2, 0, 90);
-    loadObject('tiles/rooms/Room_MTN_Corner_2.glb', 0, -0.2, 6, 180);
-    loadObject('tiles/rooms/Room_MTN_Corner_1.glb', 6, -0.2, 6, 180);
-    loadObject('tiles/rooms/Room_MTN_Corner_1.glb', -6, -0.2, 6, 90);
-    loadObject('tiles/rooms/Room_MTN_Corner_1.glb', 6, -0.2, -6, -90);
-    loadObject('tiles/rooms/Room_MTN_Corner_1.glb', -6, -0.2, -6, 0);
-    loadObject('tiles/rooms/Room_MTN_Door_Corner_A_2.glb', 0, -0.2, -6, 0);
+    loadObject('Map.glb', 0, 0, 0, -90);
 
     let pointLight = new THREE.PointLight(0xffffff, 7);
     pointLight.position.set(3, 4.5, 3);
@@ -141,11 +133,6 @@ export const useThreeSetup = (containerRef: React.RefObject<HTMLDivElement>) => 
     pointLight.shadow.camera.near = 0.5;
     pointLight.shadow.camera.far = 20;
     scene.add(pointLight);
-    
-    loadObject('tiles/walls/Wall_MTNDoor_End_2.glb', 0, -0.2, -13.5, 180);
-    loadObject('tiles/walls/Wall_MTNDoor_End_2.glb', 0, -0.2, -22.5, 0);
-    loadObject('tiles/rooms/Room_2.glb', 0, -0.2, -22.5, 90);
-    loadObject('tiles/rooms/Room_2.glb', 0, -0.2, -13.5, 90);
 
     pointLight = new THREE.PointLight(0xffffff, 8);
     pointLight.position.set(0, 7, -13.5);
