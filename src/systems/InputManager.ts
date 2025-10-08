@@ -1,4 +1,3 @@
-// src/systems/InputManager.ts
 import { toast } from "sonner";
 
 export class InputManager {
@@ -8,7 +7,7 @@ export class InputManager {
     left: false,
     right: false,
     jump: false,
-    sprint: false
+    sprint: false,
   };
   
   public mouse = {
@@ -58,6 +57,9 @@ export class InputManager {
 
   private onPointerLockChange = () => {
     this.isPointerLocked = document.pointerLockElement === this.rendererDomElement;
+    if (!this.isPointerLocked) {
+      window.dispatchEvent(new CustomEvent('togglePause'));
+    }
   };
 
   private onMouseMove = (event: MouseEvent) => {
@@ -100,10 +102,10 @@ export class InputManager {
   };
   
   private onMouseDown = (event: MouseEvent) => {
-      if (event.button === 0) this.isShooting = true;
+    if (event.button === 0) this.isShooting = true;
   }
 
   private onMouseUp = (event: MouseEvent) => {
-      if (event.button === 0) this.isShooting = false;
+    if (event.button === 0) this.isShooting = false;
   }
 }
