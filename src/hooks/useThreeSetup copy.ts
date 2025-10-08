@@ -50,17 +50,17 @@ export const useThreeSetup = (containerRef: React.RefObject<HTMLDivElement>) => 
     scene.add(ambientLight);
 
     const directionalLight = new THREE.DirectionalLight(0xffffff, 2.5);
-    directionalLight.position.set(10, 15, 5);
+    directionalLight.position.set(10, 20, 5);
     directionalLight.castShadow = true;
 
     directionalLight.shadow.mapSize.width = 512;
     directionalLight.shadow.mapSize.height = 512;
     directionalLight.shadow.camera.near = 0.5;
     directionalLight.shadow.camera.far = 50;
-    directionalLight.shadow.camera.left = -25;
-    directionalLight.shadow.camera.right = 25;
-    directionalLight.shadow.camera.top = 25;
-    directionalLight.shadow.camera.bottom = -25;
+    directionalLight.shadow.camera.left = -50;
+    directionalLight.shadow.camera.right = 50;
+    directionalLight.shadow.camera.top = 50;
+    directionalLight.shadow.camera.bottom = -50;
     scene.add(directionalLight);
 
     // Environment Setup
@@ -106,63 +106,47 @@ export const useThreeSetup = (containerRef: React.RefObject<HTMLDivElement>) => 
 
     loadObject('Map.glb', 0, 0, 0, -90);
 
-    let pointLight = new THREE.PointLight(0xffffff, 7);
-    pointLight.position.set(3, 4.5, 3);
-    pointLight.castShadow = true;
-    pointLight.shadow.camera.near = 0.5;
-    pointLight.shadow.camera.far = 20;
-    scene.add(pointLight);
+    // let pointLight = new THREE.PointLight(0xffffff, 6.5);
+    // pointLight.position.set(3, 3.5, 3);
+    // pointLight.castShadow = true;
+    // pointLight.shadow.camera.near = 0.5;
+    // pointLight.shadow.camera.far = 20;
+    // scene.add(pointLight);
 
-    pointLight = new THREE.PointLight(0xffffff, 7);
-    pointLight.position.set(-3, 4.5, -3);
-    pointLight.castShadow = true;
-    pointLight.shadow.camera.near = 0.5;
-    pointLight.shadow.camera.far = 20;
-    scene.add(pointLight);
+    // pointLight = new THREE.PointLight(0xffffff, 6.5);
+    // pointLight.position.set(-3, 3.5, -3);
+    // pointLight.castShadow = true;
+    // pointLight.shadow.camera.near = 0.5;
+    // pointLight.shadow.camera.far = 20;
+    // scene.add(pointLight);
 
-    pointLight = new THREE.PointLight(0xffffff, 7);
-    pointLight.position.set(-3, 4.5, 3);
-    pointLight.castShadow = true;
-    pointLight.shadow.camera.near = 0.5;
-    pointLight.shadow.camera.far = 20;
-    scene.add(pointLight);
+    // pointLight = new THREE.PointLight(0xffffff, 6.5);
+    // pointLight.position.set(-3, 3.5, 3);
+    // pointLight.castShadow = true;
+    // pointLight.shadow.camera.near = 0.5;
+    // pointLight.shadow.camera.far = 20;
+    // scene.add(pointLight);
 
-    pointLight = new THREE.PointLight(0xffffff, 7);
-    pointLight.position.set(3, 4.5, -3);
-    pointLight.castShadow = true;
-    pointLight.shadow.camera.near = 0.5;
-    pointLight.shadow.camera.far = 20;
-    scene.add(pointLight);
+    // pointLight = new THREE.PointLight(0xffffff, 6.5);
+    // pointLight.position.set(3, 3.5, -3);
+    // pointLight.castShadow = true;
+    // pointLight.shadow.camera.near = 0.5;
+    // pointLight.shadow.camera.far = 20;
+    // scene.add(pointLight);
 
-    pointLight = new THREE.PointLight(0xffffff, 8);
-    pointLight.position.set(0, 7, -13.5);
-    pointLight.castShadow = true;
-    pointLight.shadow.camera.near = 0.5;
-    pointLight.shadow.camera.far = 20;
-    scene.add(pointLight);
+    // pointLight = new THREE.PointLight(0xffffff, 8);
+    // pointLight.position.set(0, 7, -13.5);
+    // pointLight.castShadow = true;
+    // pointLight.shadow.camera.near = 0.5;
+    // pointLight.shadow.camera.far = 20;
+    // scene.add(pointLight);
 
-    pointLight = new THREE.PointLight(0xffffff, 8);
-    pointLight.position.set(0, 7, -22.5);
-    pointLight.castShadow = true;
-    pointLight.shadow.camera.near = 0.5;
-    pointLight.shadow.camera.far = 20;
-    scene.add(pointLight);
-
-    const boxGeometry = new THREE.BoxGeometry(3, 3, 3);
-    const boxMaterial = new THREE.MeshStandardMaterial({
-      color: 0x8888aa,
-      roughness: 0.6,
-      metalness: 0.7,
-      envMap: skybox,
-      envMapIntensity: 0.8
-    });
-
-    const box = new THREE.Mesh(boxGeometry, boxMaterial);
-    box.position.set(0, 1.5, 0);
-    box.castShadow = true;
-    box.receiveShadow = true;
-    scene.add(box);
-    colliders.push(box);
+    // pointLight = new THREE.PointLight(0xffffff, 8);
+    // pointLight.position.set(0, 7, -22.5);
+    // pointLight.castShadow = true;
+    // pointLight.shadow.camera.near = 0.5;
+    // pointLight.shadow.camera.far = 20;
+    // scene.add(pointLight);
 
     // const floorGeometry = new THREE.PlaneGeometry(50, 50);
     // const floorMaterial = new THREE.MeshStandardMaterial({
