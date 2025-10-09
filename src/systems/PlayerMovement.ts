@@ -7,7 +7,7 @@ export class PlayerMovement {
     private colliders: THREE.Mesh[];
 
     // Parameter pergerakan
-    private speed = 10;
+    private speed = 6;
     private sprintMultiplier = 1.8;
     private airControl = 0.75;
     private gravity = 9.5;

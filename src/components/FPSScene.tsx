@@ -63,7 +63,6 @@ export const FPSScene = ({ isPaused, onTogglePause }: { isPaused: boolean; onTog
       weaponManager.update(elapsedTime, delta);
       weaponSpawnManager.update(elapsedTime, delta);
       
-      window.dispatchEvent(new CustomEvent('playerStatsUpdate', { detail: playerController.getStats() }));
       renderer.render(scene, camera);
 
     };

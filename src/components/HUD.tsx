@@ -77,12 +77,12 @@ export const HUD = () => {
           {/* Health Bar */}
           <div className="flex items-center gap-2 mb-2">
             <span className="text-sm font-bold text-red-500">HP</span>
-            <Progress value={playerStats.health} className="h-3 [&>div]:bg-red-500" />
+            <Progress value={playerStats.health} max={playerStats.maxHealth} className="h-3 [&>div]:bg-red-500" />
           </div>
           {/* Stamina Bar */}
           <div className="flex items-center gap-2">
             <span className="text-sm font-bold text-green-500">SP</span>
-            <Progress value={playerStats.stamina} className="h-3 [&>div]:bg-green-500" />
+            <Progress value={playerStats.stamina} max={playerStats.maxStamina} className="h-3 [&>div]:bg-green-500" />
           </div>
         </div>
 
