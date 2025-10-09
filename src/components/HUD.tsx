@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Progress } from "@/components/ui/progress"; // Import Progress component
 
 interface WeaponInfo {
   name: string;
@@ -9,25 +10,36 @@ interface WeaponInfo {
   totalWeapons: number;
 }
 
+interface PlayerStats {
+  health: number;
+  maxHealth: number;
+  stamina: number;
+  maxStamina: number;
+}
+
 export const HUD = () => {
-  
   const [weaponInfo, setWeaponInfo] = useState<WeaponInfo | null>(null);
+  const [playerStats, setPlayerStats] = useState<PlayerStats>({ health: 100, maxHealth: 100, stamina: 100, maxStamina: 100 });
   const [fps, setFps] = useState(60);
 
   useEffect(() => {
-    // Listen for weapon updates from the game
+    
     const handleWeaponUpdate = (event: CustomEvent<WeaponInfo>) => {
       setWeaponInfo(event.detail);
     };
 
+    const handlePlayerStatsUpdate = (event: CustomEvent<PlayerStats>) => {
+      setPlayerStats(event.detail);
+    };
+
     window.addEventListener('weaponUpdate' as any, handleWeaponUpdate);
+    window.addEventListener('playerStatsUpdate' as any, handlePlayerStatsUpdate);
 
     // FPS counter
     let frameCount = 0;
     let lastTime = performance.now();
     
     const updateFPS = () => {
-      
       frameCount++;
       const currentTime = performance.now();
       
@@ -38,15 +50,14 @@ export const HUD = () => {
       }
       
       requestAnimationFrame(updateFPS);
-
     };
     
     updateFPS();
 
     return () => {
       window.removeEventListener('weaponUpdate' as any, handleWeaponUpdate);
+      window.removeEventListener('playerStatsUpdate' as any, handlePlayerStatsUpdate);
     };
-
   }, []);
 
   return (
@@ -57,6 +68,50 @@ export const HUD = () => {
           <div className="absolute top-1/2 left-0 w-full h-0.5 bg-primary opacity-70 -translate-y-1/2" />
           <div className="absolute left-1/2 top-0 w-0.5 h-full bg-primary opacity-70 -translate-x-1/2" />
           <div className="absolute top-1/2 left-1/2 w-1 h-1 bg-primary rounded-full -translate-x-1/2 -translate-y-1/2 shadow-[0_0_10px_hsl(var(--primary))]" />
+        </div>
+      </div>
+
+      {/* Player Stats - Bottom Left */}
+      <div className="absolute bottom-6 left-6 space-y-4">
+        <div className="bg-card/80 backdrop-blur-sm p-4 rounded-lg border border-primary/20 w-56">
+          {/* Health Bar */}
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-sm font-bold text-red-500">HP</span>
+            <Progress value={playerStats.health} className="h-3 [&>div]:bg-red-500" />
+          </div>
+          {/* Stamina Bar */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-bold text-green-500">SP</span>
+            <Progress value={playerStats.stamina} className="h-3 [&>div]:bg-green-500" />
+          </div>
+        </div>
+
+        {/* Controls Info */}
+        <div className="bg-card/80 backdrop-blur-sm px-4 py-3 rounded-lg border border-primary/20 space-y-1">
+          <div className="flex items-center gap-3">
+            <kbd className="px-2 py-1 bg-muted rounded text-xs font-mono text-primary border border-primary/30">W A S D</kbd>
+            <span className="text-sm text-foreground/70">Move</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <kbd className="px-2 py-1 bg-muted rounded text-xs font-mono text-primary border border-primary/30">SPACE</kbd>
+            <span className="text-sm text-foreground/70">Jump</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <kbd className="px-2 py-1 bg-muted rounded text-xs font-mono text-primary border border-primary/30">SHIFT</kbd>
+            <span className="text-sm text-foreground/70">Sprint</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <kbd className="px-2 py-1 bg-muted rounded text-xs font-mono text-primary border border-primary/30">MOUSE</kbd>
+            <span className="text-sm text-foreground/70">Look / Shoot</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <kbd className="px-2 py-1 bg-muted rounded text-xs font-mono text-primary border border-primary/30">SCROLL</kbd>
+            <span className="text-sm text-foreground/70">Switch Weapon</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <kbd className="px-2 py-1 bg-muted rounded text-xs font-mono text-primary border border-primary/30">R</kbd>
+            <span className="text-sm text-foreground/70">Reload</span>
+          </div>
         </div>
       </div>
 
@@ -126,36 +181,6 @@ export const HUD = () => {
           </div>
         </div>
       )}
-
-      {/* Controls Info - Bottom Left */}
-      <div className="absolute bottom-6 left-6">
-        <div className="bg-card/80 backdrop-blur-sm px-4 py-3 rounded-lg border border-primary/20 space-y-1">
-          <div className="flex items-center gap-3">
-            <kbd className="px-2 py-1 bg-muted rounded text-xs font-mono text-primary border border-primary/30">W A S D</kbd>
-            <span className="text-sm text-foreground/70">Move</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <kbd className="px-2 py-1 bg-muted rounded text-xs font-mono text-primary border border-primary/30">SPACE</kbd>
-            <span className="text-sm text-foreground/70">Jump</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <kbd className="px-2 py-1 bg-muted rounded text-xs font-mono text-primary border border-primary/30">SHIFT</kbd>
-            <span className="text-sm text-foreground/70">Sprint</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <kbd className="px-2 py-1 bg-muted rounded text-xs font-mono text-primary border border-primary/30">MOUSE</kbd>
-            <span className="text-sm text-foreground/70">Look / Shoot</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <kbd className="px-2 py-1 bg-muted rounded text-xs font-mono text-primary border border-primary/30">SCROLL</kbd>
-            <span className="text-sm text-foreground/70">Switch Weapon</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <kbd className="px-2 py-1 bg-muted rounded text-xs font-mono text-primary border border-primary/30">R</kbd>
-            <span className="text-sm text-foreground/70">Reload</span>
-          </div>
-        </div>
-      </div>
 
       {/* FPS Counter - Top Right */}
       <div className="absolute top-6 right-6">
