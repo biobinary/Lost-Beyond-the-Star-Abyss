@@ -14,7 +14,7 @@ const ShotgunConfig: WeaponConfig = {
     modelPath: '/models/low_poly_guns_fbx/shotguns/shotgun_1.fbx', // Ganti dengan model shotgun
     texturePath: '/models/low_poly_guns_fbx/uv_palette.png',
     gunPosition: new THREE.Vector3(0.5, -0.4, -0.7),
-    muzzlePosition: new THREE.Vector3(0, 0.05, -1.0)
+    muzzlePosition: new THREE.Vector3(0, 0.225, -1.1)
 };
 
 export class Shotgun extends BaseWeapon {

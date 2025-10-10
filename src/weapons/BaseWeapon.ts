@@ -99,15 +99,16 @@ export abstract class BaseWeapon implements IWeapon {
   ): void;
 
   public reload(): void {
-    if (this.reserveAmmo >= this.maxAmmo) {
-      this.reserveAmmo -= this.maxAmmo;
-      this.ammo = this.maxAmmo;
-    } else if (this.reserveAmmo > 0) {
-      this.ammo = this.reserveAmmo;
-      this.reserveAmmo = 0;
-    } else {
+    let ammoChange = (this.maxAmmo - this.ammo)
+    if (this.reserveAmmo == 0) {
       console.log(`${this.config.name} no reserve ammo to reload!`);
       return;
+    } else if (this.reserveAmmo >= ammoChange) {
+      this.reserveAmmo -= ammoChange;
+      this.ammo += ammoChange;
+    } else if (this.reserveAmmo < ammoChange) {
+      this.ammo += this.reserveAmmo;
+      this.reserveAmmo = 0;
     }
     console.log(`${this.config.name} reloaded. Clip: ${this.ammo}/${this.maxAmmo}, Reserve: ${this.reserveAmmo}`);
   }
@@ -143,12 +144,9 @@ export abstract class BaseWeapon implements IWeapon {
     const recoilProgress = Math.min(this.recoilTime / this.config.recoilDuration, 1.0);
 
     if (recoilProgress < 0.5) {
-      this.model.rotation.x =
-        this.initialRotation.x - this.config.recoilAmount * (recoilProgress * 2);
+      this.model.rotation.x = -(this.initialRotation.x - this.config.recoilAmount * (recoilProgress * 2));
     } else {
-      this.model.rotation.x =
-        this.initialRotation.x -
-        this.config.recoilAmount * (1 - (recoilProgress - 0.5) * 2);
+      this.model.rotation.x = -(this.initialRotation.x - this.config.recoilAmount * (1 - (recoilProgress - 0.5) * 2));
     }
 
     if (recoilProgress >= 1.0) {
