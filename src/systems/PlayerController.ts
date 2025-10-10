@@ -23,6 +23,10 @@ export class PlayerController {
         this.stats.takeDamage(amount);
     }
 
+    public addHealth(amount: number) {
+        this.stats.restoreHealth(amount);
+    }
+
     public getStats() {
         return this.stats.getStats();
     }

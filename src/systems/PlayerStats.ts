@@ -57,6 +57,18 @@ export class PlayerStats {
 
     }
 
+    public restoreHealth(amount: number) {
+        
+        this.health += amount;
+        
+        if (this.health > this.maxHealth) {
+            this.health = this.maxHealth;
+        }
+        
+        this.updateHUD();
+
+    }
+
     public getStats() {
         return {
             health: this.health,
