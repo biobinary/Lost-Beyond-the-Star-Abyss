@@ -43,8 +43,37 @@ export const useThreeSetup = (containerRef: React.RefObject<HTMLDivElement>) => 
 
     // Camera
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.set(0, 3, 10); // Mundur sedikit untuk view yang lebih luas
+    camera.position.set(0, 3, 10);
     scene.add(camera);
+
+    const listener = new THREE.AudioListener();
+    camera.add(listener);
+
+    const musicAudio = new THREE.Audio(listener);
+    const audioLoader = new THREE.AudioLoader();
+    
+    // Load music
+    audioLoader.load('/Audio/Music/mystery-in-space-178544.mp3', function(buffer) {
+      musicAudio.setBuffer(buffer);
+      musicAudio.setLoop(true);
+      musicAudio.setVolume(0.5);
+      musicAudio.play();
+    });
+
+    // Listen for music toggle events
+    const handleToggleMusic = (event: CustomEvent) => {
+      if (event.detail.enabled) {
+        if (!musicAudio.isPlaying) {
+          musicAudio.play();
+        }
+      } else {
+        if (musicAudio.isPlaying) {
+          musicAudio.pause();
+        }
+      }
+    };
+
+    window.addEventListener('toggleMusic', handleToggleMusic as EventListener);
 
     const ambientLight = new THREE.AmbientLight(0x8899aa, 0.2);
     scene.add(ambientLight);
@@ -64,16 +93,14 @@ export const useThreeSetup = (containerRef: React.RefObject<HTMLDivElement>) => 
     scene.add(directionalLight);
 
     // Environment Setup
-    async function loadObject(modelName: string, xPos, yPos, zPos, deg){
-      const modelPath = '../../models/' + modelName
-      let model
+    async function loadObject(modelName: string, xPos: number, yPos: number, zPos: number, deg: number){
+      const modelPath = '../../models/' + modelName;
 
       try {
         const loader = new GLTFLoader();
-        // const textureLoader = new THREE.TextureLoader();
 
         loader.load(modelPath, function(gltf){
-          model = gltf.scene;
+          const model = gltf.scene;
           
           model.traverse((child) => {
             if (child instanceof THREE.Mesh && (child.material instanceof THREE.MeshStandardMaterial || child.material instanceof THREE.MeshPhongMaterial)) {
@@ -83,96 +110,20 @@ export const useThreeSetup = (containerRef: React.RefObject<HTMLDivElement>) => 
             }
           });
 
-          model.scale.x = 1.5
-          model.scale.y = 1.5
-          model.scale.z = 1.5
-          
-          model.position.x = xPos
-          model.position.z = zPos
-          model.position.y = yPos
+          model.scale.set(1.5, 1.5, 1.5);
+          model.position.set(xPos, yPos, zPos);
+          model.rotation.y = deg * Math.PI / 180;
 
-          model.rotation.y = deg * Math.PI / 180
+          scene.add(model);
+        });
 
-          scene.add(model)
-        })
-
-        
       } catch (error) {
-        console.error(`❌ Error loading FBX weapon ${modelName}:`, error);
-        toast.error(`Failed to load FBX model for ${modelName}.`);
-      
+        console.error(`Error loading GLTF weapon ${modelName}:`, error);
+        toast.error(`Failed to load GLTF model for ${modelName}.`);
       }
     }
 
     loadObject('Map.glb', 0, 0, 0, -90);
-
-    // let pointLight = new THREE.PointLight(0xffffff, 6.5);
-    // pointLight.position.set(3, 3.5, 3);
-    // pointLight.castShadow = true;
-    // pointLight.shadow.camera.near = 0.5;
-    // pointLight.shadow.camera.far = 20;
-    // scene.add(pointLight);
-
-    // pointLight = new THREE.PointLight(0xffffff, 6.5);
-    // pointLight.position.set(-3, 3.5, -3);
-    // pointLight.castShadow = true;
-    // pointLight.shadow.camera.near = 0.5;
-    // pointLight.shadow.camera.far = 20;
-    // scene.add(pointLight);
-
-    // pointLight = new THREE.PointLight(0xffffff, 6.5);
-    // pointLight.position.set(-3, 3.5, 3);
-    // pointLight.castShadow = true;
-    // pointLight.shadow.camera.near = 0.5;
-    // pointLight.shadow.camera.far = 20;
-    // scene.add(pointLight);
-
-    // pointLight = new THREE.PointLight(0xffffff, 6.5);
-    // pointLight.position.set(3, 3.5, -3);
-    // pointLight.castShadow = true;
-    // pointLight.shadow.camera.near = 0.5;
-    // pointLight.shadow.camera.far = 20;
-    // scene.add(pointLight);
-
-    // pointLight = new THREE.PointLight(0xffffff, 8);
-    // pointLight.position.set(0, 7, -13.5);
-    // pointLight.castShadow = true;
-    // pointLight.shadow.camera.near = 0.5;
-    // pointLight.shadow.camera.far = 20;
-    // scene.add(pointLight);
-
-    // pointLight = new THREE.PointLight(0xffffff, 8);
-    // pointLight.position.set(0, 7, -22.5);
-    // pointLight.castShadow = true;
-    // pointLight.shadow.camera.near = 0.5;
-    // pointLight.shadow.camera.far = 20;
-    // scene.add(pointLight);
-
-    // const floorGeometry = new THREE.PlaneGeometry(50, 50);
-    // const floorMaterial = new THREE.MeshStandardMaterial({
-    //   color: 0x555555,
-    //   roughness: 0.4,
-    //   metalness: 0.6,
-    // });
-    // const floor = new THREE.Mesh(floorGeometry, floorMaterial);
-    // floor.rotation.x = -Math.PI / 2;
-    // floor.receiveShadow = true;
-    // scene.add(floor);
-
-    // const boxGeometry = new THREE.BoxGeometry(3, 3, 3);
-    // const boxMaterial = new THREE.MeshStandardMaterial({
-    //   color: 0x8888aa,
-    //   roughness: 0.6,
-    //   metalness: 0.7,
-    //   envMap: skybox,
-    //   envMapIntensity: 0.8
-    // });
-
-    // const box = new THREE.Mesh(boxGeometry, boxMaterial);
-    // box.position.set(0, 1.5, 0);
-    // box.castShadow = true;
-    // box.receiveShadow = true;
-    // scene.add(box);
 
     setThreeObjects({ scene, camera, renderer, colliders });
 
@@ -186,18 +137,21 @@ export const useThreeSetup = (containerRef: React.RefObject<HTMLDivElement>) => 
     window.addEventListener("resize", handleResize);
 
     return () => {
-
       window.removeEventListener("resize", handleResize);
-      if (currentContainer) {
+      window.removeEventListener('toggleMusic', handleToggleMusic as EventListener);
+      
+      if (musicAudio.isPlaying) {
+        musicAudio.stop();
+      }
+      
+      if (currentContainer && currentContainer.contains(renderer.domElement)) {
         currentContainer.removeChild(renderer.domElement);
       }
 
       pmremGenerator.dispose();
       renderer.dispose();
-
     };
   }, [containerRef]);
 
   return threeObjects;
-
 };

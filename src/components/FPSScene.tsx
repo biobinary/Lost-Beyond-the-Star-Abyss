@@ -7,15 +7,21 @@ import { WeaponManager } from "../systems/WeaponManager";
 import { EffectsManager } from "../systems/EffectsManager";
 import { WeaponSpawnManager } from "@/systems/WeaponSpawnManager";
 
-export const FPSScene = ({ isPaused, onTogglePause }: { isPaused: boolean; onTogglePause: () => void }) => {
+export const FPSScene = ({ isPaused, onTogglePause, isMusicEnabled }: { isPaused: boolean; onTogglePause: () => void; isMusicEnabled: boolean }) => {
   
   const containerRef = useRef<HTMLDivElement>(null);
   const threeObjects = useThreeSetup(containerRef);
   
   const isPausedRef = useRef(isPaused);
+  const isMusicEnabledRef = useRef(isMusicEnabled);
+  
   useEffect(() => {
     isPausedRef.current = isPaused;
   }, [isPaused]);
+
+  useEffect(() => {
+    isMusicEnabledRef.current = isMusicEnabled;
+  }, [isMusicEnabled]);
 
   useEffect(() => {
 

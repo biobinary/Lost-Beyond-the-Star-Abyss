@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
+import { Switch } from "./ui/switch";
+import { Label } from "./ui/label";
 
-interface PauseMenuProps {
-  onResume: () => void;
-  onMainMenu: () => void;
-  onSettings: () => void;
+interface SettingsMenuProps {
+  onBack: () => void;
+  isMusicEnabled: boolean;
+  onToggleMusic: () => void;
 }
 
-const PauseMenu: React.FC<PauseMenuProps> = ({ onResume, onMainMenu, onSettings }) => {
+const SettingsMenu: React.FC<SettingsMenuProps> = ({ onBack, isMusicEnabled, onToggleMusic }) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [flicker, setFlicker] = useState(false);
   const [stars, setStars] = useState<Array<{ x: number; y: number; size: number; speed: number; opacity: number }>>([]);
@@ -78,7 +80,7 @@ const PauseMenu: React.FC<PauseMenuProps> = ({ onResume, onMainMenu, onSettings 
       />
 
       {/* Main Content */}
-      <div className={`relative z-10 text-center space-y-6 p-8 transition-all duration-1000 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+      <div className={`relative z-10 text-center space-y-8 p-8 transition-all duration-1000 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
         {/* Title */}
         <div className="relative mb-8">
           <h1
@@ -88,83 +90,67 @@ const PauseMenu: React.FC<PauseMenuProps> = ({ onResume, onMainMenu, onSettings 
               fontFamily: 'monospace',
             }}
           >
-            SYSTEM PAUSED
+            SETTINGS
           </h1>
           {/* Glitch layers */}
           <div className="absolute top-0 left-0 w-full opacity-30 animate-glitch-horror" style={{ color: '#0088AA' }}>
             <h1 className="text-5xl md:text-7xl font-bold tracking-wide" style={{ fontFamily: 'monospace' }}>
-              SYSTEM PAUSED
+              SETTINGS
             </h1>
           </div>
         </div>
 
-        {/* Warning Message */}
-        <div className="h-8 flex items-center justify-center my-6">
-          <p className="text-base md:text-lg text-cyan-400/80 font-mono tracking-[0.3em] animate-pulse border-y border-cyan-900/50 py-2 px-6">
-            [ AWAITING USER INPUT ]
-          </p>
+        {/* Settings Panel */}
+        <div className="relative group max-w-md mx-auto">
+          <div className="absolute inset-0 bg-cyan-900/20 rounded blur-xl opacity-60" />
+          <div className="relative bg-black/80 backdrop-blur-sm p-8 border-2 border-cyan-800/50 shadow-[0_0_30px_rgba(0,139,139,0.3)]"
+            style={{
+              clipPath: 'polygon(0% 0%, 100% 0%, 100% 95%, 98% 100%, 0% 100%)',
+            }}
+          >
+            <div className="flex items-center justify-between py-4">
+              <Label htmlFor="music-toggle" className="text-cyan-200 font-mono text-lg tracking-wider flex items-center gap-3">
+                <span className="inline-block w-2 h-2 bg-cyan-500 rounded-full animate-pulse" />
+                BACKGROUND MUSIC
+              </Label>
+              <Switch
+                id="music-toggle"
+                checked={isMusicEnabled}
+                onCheckedChange={onToggleMusic}
+                className="data-[state=checked]:bg-cyan-600"
+              />
+            </div>
+            
+            {/* Status Indicator */}
+            <div className="mt-4 pt-4 border-t border-cyan-900/30">
+              <p className="text-cyan-400/60 text-xs font-mono tracking-widest">
+                STATUS: <span className={isMusicEnabled ? "text-cyan-400" : "text-red-400"}>{isMusicEnabled ? "ENABLED" : "DISABLED"}</span>
+              </p>
+            </div>
+          </div>
         </div>
 
-        {/* Menu Buttons */}
-        <div className="space-y-4">
-          {/* Resume Button */}
-          <div className="relative group">
-            <div className="absolute inset-0 bg-cyan-900/30 rounded blur-xl opacity-60 group-hover:opacity-90 transition-opacity duration-500" />
-            <button
-              className={`relative bg-black border-2 border-cyan-800 text-cyan-200 font-mono font-bold text-lg md:text-xl py-3 px-12 hover:bg-cyan-950 hover:border-cyan-600 hover:text-cyan-50 transition-all duration-300 shadow-[0_0_30px_rgba(0,139,139,0.4)] hover:shadow-[0_0_50px_rgba(0,139,139,0.8)] backdrop-blur-sm ${flicker ? 'animate-pulse' : ''}`}
-              onClick={onResume}
-              style={{
-                clipPath: 'polygon(0% 0%, 100% 0%, 100% 85%, 95% 100%, 0% 100%)',
-              }}
-            >
-              <span className="relative z-10 flex items-center gap-3 tracking-widest">
-                <span className="inline-block w-2 h-2 bg-cyan-500 rounded-full animate-pulse" />
-                RESUME
-                <span className="inline-block w-2 h-2 bg-cyan-500 rounded-full animate-pulse" />
-              </span>
-            </button>
-          </div>
-
-          {/* Settings Button */}
-          <div className="relative group">
-            <div className="absolute inset-0 bg-cyan-900/30 rounded blur-xl opacity-60 group-hover:opacity-90 transition-opacity duration-500" />
-            <button
-              className={`relative bg-black border-2 border-cyan-800 text-cyan-200 font-mono font-bold text-lg md:text-xl py-3 px-12 hover:bg-cyan-950 hover:border-cyan-600 hover:text-cyan-50 transition-all duration-300 shadow-[0_0_30px_rgba(0,139,139,0.4)] hover:shadow-[0_0_50px_rgba(0,139,139,0.8)] backdrop-blur-sm ${flicker ? 'animate-pulse' : ''}`}
-              onClick={onSettings}
-              style={{
-                clipPath: 'polygon(0% 0%, 100% 0%, 100% 85%, 95% 100%, 0% 100%)',
-              }}
-            >
-              <span className="relative z-10 flex items-center gap-3 tracking-widest">
-                <span className="inline-block w-2 h-2 bg-cyan-500 rounded-full animate-pulse" />
-                SETTINGS
-                <span className="inline-block w-2 h-2 bg-cyan-500 rounded-full animate-pulse" />
-              </span>
-            </button>
-          </div>
-
-          {/* Main Menu Button */}
-          <div className="relative group">
-            <div className="absolute inset-0 bg-cyan-900/30 rounded blur-xl opacity-60 group-hover:opacity-90 transition-opacity duration-500" />
-            <button
-              className={`relative bg-black border-2 border-cyan-800 text-cyan-200 font-mono font-bold text-lg md:text-xl py-3 px-12 hover:bg-cyan-950 hover:border-cyan-600 hover:text-cyan-50 transition-all duration-300 shadow-[0_0_30px_rgba(0,139,139,0.4)] hover:shadow-[0_0_50px_rgba(0,139,139,0.8)] backdrop-blur-sm ${flicker ? 'animate-pulse' : ''}`}
-              onClick={onMainMenu}
-              style={{
-                clipPath: 'polygon(0% 0%, 100% 0%, 100% 85%, 95% 100%, 0% 100%)',
-              }}
-            >
-              <span className="relative z-10 flex items-center gap-3 tracking-widest">
-                <span className="inline-block w-2 h-2 bg-cyan-500 rounded-full animate-pulse" />
-                MAIN MENU
-                <span className="inline-block w-2 h-2 bg-cyan-500 rounded-full animate-pulse" />
-              </span>
-            </button>
-          </div>
+        {/* Back Button */}
+        <div className="relative group mt-8">
+          <div className="absolute inset-0 bg-cyan-900/30 rounded blur-xl opacity-60 group-hover:opacity-90 transition-opacity duration-500" />
+          <button
+            className={`relative bg-black border-2 border-cyan-800 text-cyan-200 font-mono font-bold text-lg md:text-xl py-3 px-12 hover:bg-cyan-950 hover:border-cyan-600 hover:text-cyan-50 transition-all duration-300 shadow-[0_0_30px_rgba(0,139,139,0.4)] hover:shadow-[0_0_50px_rgba(0,139,139,0.8)] backdrop-blur-sm ${flicker ? 'animate-pulse' : ''}`}
+            onClick={onBack}
+            style={{
+              clipPath: 'polygon(0% 0%, 100% 0%, 100% 85%, 95% 100%, 0% 100%)',
+            }}
+          >
+            <span className="relative z-10 flex items-center gap-3 tracking-widest">
+              <span className="inline-block w-2 h-2 bg-cyan-500 rounded-full animate-pulse" />
+              BACK
+              <span className="inline-block w-2 h-2 bg-cyan-500 rounded-full animate-pulse" />
+            </span>
+          </button>
         </div>
 
         {/* Warning Text */}
         <p className="text-cyan-400/60 text-xs md:text-sm font-mono mt-4 animate-pulse italic">
-          &gt; System unstable. Proceed with caution.
+          &gt; Audio system operational. Adjust as needed.
         </p>
       </div>
 
@@ -232,4 +218,4 @@ const PauseMenu: React.FC<PauseMenuProps> = ({ onResume, onMainMenu, onSettings 
   );
 };
 
-export default PauseMenu;
+export default SettingsMenu;
