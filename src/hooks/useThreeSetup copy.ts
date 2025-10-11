@@ -86,10 +86,10 @@ export const useThreeSetup = (containerRef: React.RefObject<HTMLDivElement>) => 
     directionalLight.shadow.mapSize.height = 512;
     directionalLight.shadow.camera.near = 0.5;
     directionalLight.shadow.camera.far = 50;
-    directionalLight.shadow.camera.left = -50;
-    directionalLight.shadow.camera.right = 50;
-    directionalLight.shadow.camera.top = 50;
-    directionalLight.shadow.camera.bottom = -50;
+    directionalLight.shadow.camera.left = -65;
+    directionalLight.shadow.camera.right = 65;
+    directionalLight.shadow.camera.top = 60;
+    directionalLight.shadow.camera.bottom = -60;
     scene.add(directionalLight);
 
     // Environment Setup
@@ -123,7 +123,7 @@ export const useThreeSetup = (containerRef: React.RefObject<HTMLDivElement>) => 
       }
     }
 
-    loadObject('Map.glb', 0, 0, 0, -90);
+    loadObject('Map.glb', 0, 0, 5, -90);
 
     setThreeObjects({ scene, camera, renderer, colliders });
 
