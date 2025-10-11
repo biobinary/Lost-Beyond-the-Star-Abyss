@@ -10,6 +10,7 @@ export const useThreeSetup = (containerRef: React.RefObject<HTMLDivElement>) => 
     camera: THREE.PerspectiveCamera;
     renderer: THREE.WebGLRenderer;
     colliders: THREE.Mesh[];
+    listener: THREE.AudioListener;
   } | null>(null);
 
   useEffect(() => {
@@ -125,7 +126,7 @@ export const useThreeSetup = (containerRef: React.RefObject<HTMLDivElement>) => 
 
     loadObject('Map.glb', 0, 0, 5, -90);
 
-    setThreeObjects({ scene, camera, renderer, colliders });
+    setThreeObjects({ scene, camera, renderer, colliders, listener });
 
     // --- Handlers & Cleanup ---
     const handleResize = () => {
@@ -152,6 +153,5 @@ export const useThreeSetup = (containerRef: React.RefObject<HTMLDivElement>) => 
       renderer.dispose();
     };
   }, [containerRef]);
-
   return threeObjects;
 };

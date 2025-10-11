@@ -1,4 +1,5 @@
 // src/systems/WeaponSpawnManager.ts
+import { useRef } from 'react';
 import * as THREE from 'three';
 import { IWeapon } from '../weapons/IWeapon';
 import { Blaster } from '../weapons/Blaster';  // Asumsi ini extend BaseWeapon dengan config
@@ -6,6 +7,7 @@ import { Shotgun } from '../weapons/Shotgun';  // Sama
 import { WeaponManager } from './WeaponManager';
 import { PlayerController } from './PlayerController';
 import { EffectsManager } from './EffectsManager';
+import { useThreeSetup } from '../hooks/useThreeSetup copy';
 
 interface SpawnPoint {
     position: THREE.Vector3;
@@ -16,6 +18,7 @@ interface SpawnPoint {
 
 export class WeaponSpawnManager {
     private scene: THREE.Scene;
+    private listener: THREE.AudioListener;
     private weaponManager: WeaponManager;
     private playerController: PlayerController;
     private effects: EffectsManager;  // Tambahan: Pakai shared EffectsManager
@@ -26,21 +29,23 @@ export class WeaponSpawnManager {
         scene: THREE.Scene, 
         weaponManager: WeaponManager, 
         playerController: PlayerController,
-        effects: EffectsManager  // Tambahan
+        effects: EffectsManager,  // Tambahan
+        listener: THREE.AudioListener
     ) {
         this.scene = scene;
         this.weaponManager = weaponManager;
         this.playerController = playerController;
         this.effects = effects;
+        this.listener =listener;
 
         this.initializeSpawnPoints();
     }
 
     private async initializeSpawnPoints() {
         const points = [
-            { position: new THREE.Vector3(13.5, 1, -21), weapon: new Blaster() },
-            { position: new THREE.Vector3(-28, 1, -52), weapon: new Shotgun() },
-            { position: new THREE.Vector3(-6, 1, -1), weapon: new Blaster() },
+            { position: new THREE.Vector3(13.5, 1, -21), weapon: new Blaster(this.listener) },
+            { position: new THREE.Vector3(-28, 1, -52), weapon: new Shotgun(this.listener) },
+            { position: new THREE.Vector3(-6, 1, -1), weapon: new Blaster(this.listener) },
         ];
 
         for (const point of points) {

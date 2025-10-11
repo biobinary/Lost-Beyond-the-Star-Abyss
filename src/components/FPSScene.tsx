@@ -37,14 +37,14 @@ export const FPSScene = ({ isPaused, onTogglePause, isMusicEnabled }: { isPaused
 
     window.addEventListener('togglePause', handleTogglePause);
 
-    const { scene, camera, renderer, colliders } = threeObjects;
+    const { scene, camera, renderer, colliders, listener  } = threeObjects;
 
     const inputManager = new InputManager(renderer.domElement);
     const playerController = new PlayerController(camera, inputManager, colliders);
     const effectsManager = new EffectsManager(scene);
     const weaponManager = new WeaponManager(camera, scene, effectsManager, inputManager);
     const monsterSpawnManager = new MonsterSpawnManager(scene);
-    const weaponSpawnManager = new WeaponSpawnManager(scene, weaponManager, playerController, effectsManager);
+    const weaponSpawnManager = new WeaponSpawnManager(scene, weaponManager, playerController, effectsManager, listener);
     const healthItemSpawnManager = new HealthItemSpawnManager(scene, playerController, effectsManager);
     
     const clock = new THREE.Clock();

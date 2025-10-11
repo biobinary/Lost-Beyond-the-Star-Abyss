@@ -20,15 +20,43 @@ const BlasterConfig: WeaponConfig = {
 
 export class Blaster extends BaseWeapon {
     private raycaster = new THREE.Raycaster();
+    private shootSound?: THREE.Audio;
 
-    constructor() {
+    constructor(private listener: THREE.AudioListener) {
         super(BlasterConfig, 30); // 30 peluru per magasin
+        this.loadSound();
+    }
+    
+    private loadSound() {
+        const audioLoader = new THREE.AudioLoader();
+        this.shootSound = new THREE.Audio(this.listener);
+        audioLoader.load('/Audio/sound/heathers-gunshot.mp3', (buffer) => {
+            this.shootSound!.setBuffer(buffer);
+            this.shootSound!.setVolume(0.4);
+            this.shootSound!.setLoop(false);
+        });
     }
 
     public fire(camera: THREE.Camera, scene: THREE.Scene, effects: EffectsManager): void {
         if (!this.canShoot() || !this.model) return;
         
         super.onFire(); // Panggil logika dasar: kurangi amunisi, set cooldown, mulai recoil
+        
+        if (this.shootSound?.buffer) {
+            const clone = new THREE.Audio(this.shootSound.listener);
+            clone.setBuffer(this.shootSound.buffer);
+            clone.setVolume(this.shootSound.getVolume());
+            clone.setLoop(false);
+            clone.play();
+
+            // Auto-remove after playback to avoid buildup
+            clone.source.onended = () => {
+                if (clone.parent) clone.parent.remove(clone);
+            };
+
+            // Optionally attach to weapon for spatial sound
+            this.model.add(clone);
+        }
 
         // Gunakan muzzlePosition dari config jika tersedia
         const muzzleLocal = this.config.muzzlePosition ? this.config.muzzlePosition.clone() : new THREE.Vector3(0, 0, -0.5);

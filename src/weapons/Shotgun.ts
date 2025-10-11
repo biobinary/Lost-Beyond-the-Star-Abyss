@@ -22,9 +22,21 @@ export class Shotgun extends BaseWeapon {
     private raycaster = new THREE.Raycaster();
     private pelletCount = 8;
     private spreadAngle = 0.35; // dalam radian
+    private shootSound?: THREE.Audio;
+    
+    private loadSound() {
+        const audioLoader = new THREE.AudioLoader();
+        this.shootSound = new THREE.Audio(this.listener);
+        audioLoader.load('/Audio/sound/shotgun-firing-3.mp3', (buffer) => {
+            this.shootSound!.setBuffer(buffer);
+            this.shootSound!.setVolume(0.4);
+            this.shootSound!.setLoop(false);
+        });
+    }
 
-    constructor() {
+    constructor(private listener: THREE.AudioListener) {
         super(ShotgunConfig, 8); // 8 peluru
+        this.loadSound();
     }
 
     public fire(camera: THREE.Camera, scene: THREE.Scene, effects: EffectsManager): void {
@@ -34,6 +46,11 @@ export class Shotgun extends BaseWeapon {
         
         super.onFire();
 
+        if (this.shootSound && this.shootSound.isPlaying) {
+            this.shootSound.stop();
+        }
+        this.shootSound?.play();
+        
         const muzzleLocal = this.config.muzzlePosition ? this.config.muzzlePosition.clone() : new THREE.Vector3(0, 0, -0.5);
         const muzzleWorld = this.config.gunPosition.clone().add(muzzleLocal.clone());
         camera.localToWorld(muzzleWorld);
