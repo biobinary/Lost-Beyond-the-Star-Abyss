@@ -45,7 +45,7 @@ export const FPSScene = ({ isPaused, onTogglePause, isMusicEnabled }: { isPaused
     const weaponManager = new WeaponManager(camera, scene, effectsManager, inputManager);
     const monsterSpawnManager = new MonsterSpawnManager(scene);
     const weaponSpawnManager = new WeaponSpawnManager(scene, weaponManager, playerController, effectsManager, listener);
-    const healthItemSpawnManager = new HealthItemSpawnManager(scene, playerController, effectsManager);
+    const healthItemSpawnManager = new HealthItemSpawnManager(scene, playerController, effectsManager, listener);
     
     const clock = new THREE.Clock();
     let animationFrameId: number;
