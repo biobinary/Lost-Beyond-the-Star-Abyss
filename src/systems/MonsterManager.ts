@@ -1,46 +1,84 @@
+// src/systems/MonsterManager.ts (diganti namanya menjadi MonsterSpawnManager.ts)
 import * as THREE from 'three';
-import { Monster } from '../entities/Monster';
+import { Monster, MonsterConfig } from '../entities/Monster';
 
-export class MonsterManager {
+// Definisikan tipe untuk spawn point monster
+interface MonsterSpawnPoint {
+    position: THREE.Vector3;
+    config: MonsterConfig;
+    instance?: Monster; // Instance monster yang aktif
+}
+
+// Konfigurasi default untuk monster
+const AndromedaConfig: MonsterConfig = {
+    modelPath: 'AndromedaMonster.fbx',
+    scale: new THREE.Vector3(0.03, 0.03, 0.03),
+    health: 100,
+};
+
+export class MonsterSpawnManager {
+
     private scene: THREE.Scene;
-    private monsters: Monster[] = [];
-    
-    // PATH FILE ANDA - INI ADALAH TITIK KEGAGALAN PALING MUNGKIN
-    // Jika masih gagal, coba ubah path ini menjadi 'AndromedaMonster.fbx' 
-    // dan letakkan file di root folder public/ Anda.
-    private readonly MONSTER_MODEL_PATH = 'AndromedaMonster.fbx'; 
-    private readonly MONSTER_TEXTURE_PATH = 'MonsterTexture.jpg';
+    private spawnPoints: MonsterSpawnPoint[] = [];
+    public activeMonsters: Monster[] = [];
 
     constructor(scene: THREE.Scene) {
         this.scene = scene;
-        this.spawnInitialMonsters();
+        this.initializeSpawnPoints();
+    }
+
+    private initializeSpawnPoints() {
+    
+        const points: { position: THREE.Vector3, config: MonsterConfig }[] = [
+            { position: new THREE.Vector3(0, 0, -1), config: AndromedaConfig },
+            { position: new THREE.Vector3(10, 0, -15), config: AndromedaConfig },
+            { position: new THREE.Vector3(-15, 0, -25), config: AndromedaConfig },
+        ];
+
+        points.forEach(point => {
+            this.spawnPoints.push({
+                position: point.position,
+                config: point.config,
+            });
+        });
+        
+        // Langsung spawn semua monster saat inisialisasi
+        this.spawnAllMonsters();
+
     }
     
-    private async spawnInitialMonsters() {
-        // Monster 1: Ditempatkan dekat di depan pemain (Y=1.8 = setinggi mata)
-        const testPosition1 = new THREE.Vector3(0, 0, -1); 
-        const monster1 = new Monster(testPosition1, this.scene);
-        await monster1.load(this.MONSTER_TEXTURE_PATH, this.MONSTER_MODEL_PATH);
-        this.monsters.push(monster1);
-        
-        // Monster 2: Contoh lain
-        // const testPosition2 = new THREE.Vector3(5, 0.05, -10);
-        // const monster2 = new Monster(testPosition2, this.scene);
-        // await monster2.load(this.MONSTER_TEXTURE_PATH, this.MONSTER_MODEL_PATH);
-        // this.monsters.push(monster2);
+    private async spawnAllMonsters() {
+        for (const spawnPoint of this.spawnPoints) {
+            if (!spawnPoint.instance) {
+                const monster = new Monster(this.scene, spawnPoint.config);
+                await monster.load(spawnPoint.position);
+                
+                spawnPoint.instance = monster;
+                this.activeMonsters.push(monster);
+            }
+        }
     }
 
     public update(deltaTime: number) {
-        // Perbarui semua monster
-        for (const monster of this.monsters) {
+        
+        for (let i = this.activeMonsters.length - 1; i >= 0; i--) {
+
+            const monster = this.activeMonsters[i];
             monster.update(deltaTime);
+
+            if (monster.health <= 0) {
+                const spawnPoint = this.spawnPoints.find(p => p.instance === monster);
+                if (spawnPoint) {
+                    spawnPoint.instance = undefined;
+                }
+                this.activeMonsters.splice(i, 1);
+            }
+        
         }
         
-        // Logika pembersihan monster yang sudah mati
-        this.monsters = this.monsters.filter(monster => monster.health > 0);
     }
     
     public getMonsters(): Monster[] {
-        return this.monsters;
+        return this.activeMonsters;
     }
 }
