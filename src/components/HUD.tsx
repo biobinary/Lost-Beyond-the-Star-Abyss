@@ -80,15 +80,12 @@ export const HUD = () => {
   }, []);
 
   return (
-    <div className="fixed inset-0 pointer-events-none select-none">
+    <div className="fixed inset-0 pointer-events-none select-none font-mono">
       
-      {/* Crosshair Dinamis */}
+      {/* Dynamic Crosshair */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-        <div className="relative w-1 h-1"> {/* Titik pusat sebagai acuan */}
-          {/* Titik Tengah */}
+        <div className="relative w-1 h-1">
           <div className="absolute top-1/2 left-1/2 w-1 h-1 bg-primary rounded-full -translate-x-1/2 -translate-y-1/2 shadow-[0_0_10px_hsl(var(--primary))]" />
-
-          {/* Garis Crosshair */}
           <div className="w-0.5 h-2 bg-primary opacity-70 transition-all duration-200 absolute left-1/2 -translate-x-1/2" style={{ bottom: `${crosshairSpread}px` }} />
           <div className="w-0.5 h-2 bg-primary opacity-70 transition-all duration-200 absolute left-1/2 -translate-x-1/2" style={{ top: `${crosshairSpread}px` }} />
           <div className="w-2 h-0.5 bg-primary opacity-70 transition-all duration-200 absolute top-1/2 -translate-y-1/2" style={{ right: `${crosshairSpread}px` }} />
@@ -99,33 +96,34 @@ export const HUD = () => {
 
       {/* Player Stats - Bottom Left */}
       <div className="absolute bottom-6 left-6 space-y-4">
-        <div className="bg-card/80 backdrop-blur-sm p-4 rounded-lg border border-primary/20 w-56">
-          {/* Health Bar */}
+        <div 
+          className="bg-black/80 backdrop-blur-sm p-4 border-2 border-cyan-800/50 w-56"
+          style={{ clipPath: 'polygon(0% 0%, 100% 0%, 100% 85%, 95% 100%, 0% 100%)' }}
+        >
           <div className="flex items-center gap-2 mb-2">
             <span className="text-sm font-bold text-red-500">HP</span>
             <Progress value={playerStats.health} max={playerStats.maxHealth} className="h-3 [&>div]:bg-red-500" />
           </div>
-          {/* Stamina Bar */}
           <div className="flex items-center gap-2">
             <span className="text-sm font-bold text-green-500">SP</span>
             <Progress value={playerStats.stamina} max={playerStats.maxStamina} className="h-3 [&>div]:bg-green-500" />
           </div>
         </div>
-
       </div>
 
       {/* Weapon Info - Bottom Right */}
       {weaponInfo && (
         <div className="absolute bottom-6 right-6">
-          <div className="bg-card/90 backdrop-blur-sm px-6 py-4 rounded-lg border border-primary/30 shadow-lg">
-            {/* Weapon Name */}
+          <div 
+            className="bg-black/80 backdrop-blur-sm px-6 py-4 border-2 border-cyan-800/50 shadow-lg"
+            style={{ clipPath: 'polygon(0% 0%, 100% 0%, 100% 100%, 5% 100%, 0% 85%)' }}
+          >
             <div className="text-right mb-2">
-              <span className="text-lg font-bold text-primary tracking-wide">
+              <span className="text-lg font-bold text-primary tracking-widest">
                 {weaponInfo.name}
               </span>
             </div>
             
-            {/* Ammo Counter */}
             <div className="flex items-baseline justify-end gap-2">
               <span className={`text-4xl font-bold tabular-nums ${
                 weaponInfo.ammo === 0 
@@ -142,37 +140,21 @@ export const HUD = () => {
               </span>
             </div>
             
-            {/* Magazine Indicator */}
             <div className="mt-2 flex justify-end gap-1">
               {[...Array(weaponInfo.maxAmmo)].map((_, i) => (
-                <div
-                  key={i}
-                  className={`w-1 h-3 rounded-full ${
-                    i < weaponInfo.ammo 
-                      ? 'bg-primary' 
-                      : 'bg-muted/30'
-                  }`}
-                />
+                <div key={i} className={`w-1 h-3 rounded-sm ${i < weaponInfo.ammo ? 'bg-primary' : 'bg-muted/30'}`} />
               ))}
             </div>
 
-            {/* Weapon Selector */}
             <div className="mt-3 pt-3 border-t border-primary/20">
               <div className="flex items-center justify-end gap-2">
-                <span className="text-xs text-foreground/50">Weapon</span>
+                <span className="text-xs text-foreground/50">WEAPON</span>
                 <div className="flex gap-1">
                   {[...Array(weaponInfo.totalWeapons)].map((_, i) => (
-                    <div
-                      key={i}
-                      className={`w-2 h-2 rounded-full ${
-                        i === weaponInfo.weaponIndex
-                          ? 'bg-primary shadow-[0_0_8px_hsl(var(--primary))]'
-                          : 'bg-muted/40'
-                      }`}
-                    />
+                    <div key={i} className={`w-2 h-2 ${i === weaponInfo.weaponIndex ? 'bg-primary shadow-[0_0_8px_hsl(var(--primary))]' : 'bg-muted/40'}`} style={{ clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)' }} />
                   ))}
                 </div>
-                <span className="text-xs text-foreground/70 font-mono tabular-nums">
+                <span className="text-xs text-foreground/70 tabular-nums">
                   {weaponInfo.weaponIndex + 1}/{weaponInfo.totalWeapons}
                 </span>
               </div>
@@ -183,8 +165,11 @@ export const HUD = () => {
 
       {/* FPS Counter - Top Right */}
       <div className="absolute top-6 right-6">
-        <div className="bg-card/80 backdrop-blur-sm px-4 py-2 rounded-lg border border-accent/20">
-          <span className={`text-sm font-mono ${
+        <div 
+          className="bg-black/80 backdrop-blur-sm px-4 py-2 border-2 border-cyan-800/50"
+          style={{ clipPath: 'polygon(0% 20%, 5% 0%, 100% 0%, 100% 100%, 0% 100%)' }}
+        >
+          <span className={`text-sm ${
             fps >= 55 ? 'text-green-500' : fps >= 30 ? 'text-yellow-500' : 'text-red-500'
           }`}>
             FPS: {fps}
@@ -194,9 +179,12 @@ export const HUD = () => {
 
       {/* Low Ammo Warning */}
       {weaponInfo && weaponInfo.ammo === 0 && (
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 mt-16">
-          <div className="bg-red-500/20 backdrop-blur-sm px-6 py-3 rounded-lg border border-red-500/50 animate-pulse">
-            <span className="text-red-500 font-bold text-lg">OUT OF AMMO - RELOAD!</span>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 mt-20">
+          <div 
+            className="bg-red-900/40 backdrop-blur-sm px-6 py-3 border-2 border-red-500/80 animate-pulse"
+            style={{ clipPath: 'polygon(0% 0%, 100% 0%, 100% 80%, 95% 100%, 5% 100%, 0% 80%)' }}
+          >
+            <span className="text-red-400 font-bold text-lg tracking-widest">[ RELOAD REQUIRED ]</span>
           </div>
         </div>
       )}

@@ -9,7 +9,8 @@ import NotFound from "./pages/NotFound";
 import MainMenu from "./components/MainMenu";
 import PauseMenu from "./components/PauseMenu";
 import SettingsMenu from "./components/SettingsMenu";
-import StoryTutorial from "./components/StoryTutorial"; // Import komponen baru
+import StoryTutorial from "./components/StoryTutorial";
+import CreditsMenu from "./components/CreditsMenu"; // Impor komponen CreditsMenu
 
 const queryClient = new QueryClient();
 
@@ -18,7 +19,8 @@ function App() {
   const [isPaused, setIsPaused] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [isMusicEnabled, setIsMusicEnabled] = useState(true);
-  const [showStory, setShowStory] = useState(false); // State baru untuk menampilkan halaman cerita
+  const [showStory, setShowStory] = useState(false);
+  const [showCredits, setShowCredits] = useState(false);
 
   const handleStartFromMenu = () => {
     setShowStory(true);
@@ -35,15 +37,15 @@ function App() {
     setShowSettings(false); // Close settings when unpausing
   }, []);
 
-  const restartGame = () => {
-    setInGame(false);
-    setTimeout(() => setInGame(true), 100); // Brief delay to reset game state
-  };
-
   const backToMainMenu = () => {
     setInGame(false);
     setIsPaused(false);
     setShowSettings(false);
+    setShowCredits(false);
+  };
+  
+  const handleShowCredits = () => {
+    setShowCredits(true);
   };
 
   const openSettings = () => {
@@ -63,12 +65,16 @@ function App() {
     });
   };
 
+  if (showCredits) {
+    return <CreditsMenu onBack={() => setShowCredits(false)} />;
+  }
+
   if (showStory) {
     return <StoryTutorial onStartGame={startGame} />;
   }
 
   if (!inGame) {
-    return <MainMenu onStartGame={handleStartFromMenu} />;
+    return <MainMenu onStartGame={handleStartFromMenu} onShowCredits={handleShowCredits} />;
   }
 
   return (

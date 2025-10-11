@@ -2,9 +2,10 @@ import React, { useEffect, useState } from 'react';
 
 interface MainMenuProps {
   onStartGame: () => void;
+  onShowCredits: () => void;
 }
 
-const MainMenu: React.FC<MainMenuProps> = ({ onStartGame }) => {
+const MainMenu: React.FC<MainMenuProps> = ({ onStartGame, onShowCredits }) => { 
   const [isLoaded, setIsLoaded] = useState(false);
   const [flicker, setFlicker] = useState(false);
   const [stars, setStars] = useState<Array<{ x: number; y: number; size: number; speed: number; opacity: number }>>([]);
@@ -122,24 +123,39 @@ const MainMenu: React.FC<MainMenuProps> = ({ onStartGame }) => {
           </p>
         </div>
 
-        {/* Corrupted Start Button */}
-        <div className="relative group pt-6">
-          <div className="absolute inset-0 bg-cyan-900/30 rounded blur-xl opacity-60 group-hover:opacity-90 transition-opacity duration-500" />
+        {/* Tombol Aksi */}
+        <div className="flex flex-col items-center space-y-4 pt-6">
+          {/* Tombol Start */}
+          <div className="relative group">
+            <div className="absolute inset-0 bg-cyan-900/30 rounded blur-xl opacity-60 group-hover:opacity-90 transition-opacity duration-500" />
+            <button
+              className={`relative bg-black border-2 border-cyan-800 text-cyan-200 font-mono font-bold text-lg md:text-xl py-4 px-16 hover:bg-cyan-950 hover:border-cyan-600 hover:text-cyan-50 transition-all duration-300 shadow-[0_0_30px_rgba(0,139,139,0.4)] hover:shadow-[0_0_50px_rgba(0,139,139,0.8)] backdrop-blur-sm ${flicker ? 'animate-pulse' : ''}`}
+              onClick={onStartGame}
+              style={{
+                clipPath: 'polygon(0% 0%, 100% 0%, 100% 85%, 95% 100%, 0% 100%)'
+              }}
+            >
+              <span className="relative z-10 flex items-center gap-3 tracking-widest">
+                <span className="inline-block w-2 h-2 bg-cyan-500 rounded-full animate-pulse" />
+                ENTER THE ABYSS
+                <span className="inline-block w-2 h-2 bg-cyan-500 rounded-full animate-pulse" />
+              </span>
+            </button>
+          </div>
           
-          <button
-            className={`relative bg-black border-2 border-cyan-800 text-cyan-200 font-mono font-bold text-lg md:text-xl py-4 px-16 hover:bg-cyan-950 hover:border-cyan-600 hover:text-cyan-50 transition-all duration-300 shadow-[0_0_30px_rgba(0,139,139,0.4)] hover:shadow-[0_0_50px_rgba(0,139,139,0.8)] backdrop-blur-sm ${flicker ? 'animate-pulse' : ''}`}
-            onClick={onStartGame}
-            style={{
-              clipPath: 'polygon(0% 0%, 100% 0%, 100% 85%, 95% 100%, 0% 100%)'
-            }}
-          >
-            <span className="relative z-10 flex items-center gap-3 tracking-widest">
-              <span className="inline-block w-2 h-2 bg-cyan-500 rounded-full animate-pulse" />
-              ENTER THE ABYSS
-              <span className="inline-block w-2 h-2 bg-cyan-500 rounded-full animate-pulse" />
-            </span>
-          </button>
+          {/* Tombol Credits */}
+          <div className="relative group">
+            <button
+              className={`relative bg-transparent border-2 border-cyan-900 text-cyan-400 font-mono text-base py-2 px-8 hover:bg-cyan-950/50 hover:border-cyan-700 hover:text-cyan-200 transition-all duration-300`}
+              onClick={onShowCredits}
+            >
+              <span className="relative z-10 tracking-widest">
+                CREDITS
+              </span>
+            </button>
+          </div>
         </div>
+
 
         {/* Warning Text */}
         <p className="text-cyan-400/60 text-xs md:text-sm font-mono mt-4 animate-pulse italic">

@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 
-interface StoryTutorialProps {
-  onStartGame: () => void;
+interface CreditsMenuProps {
+  onBack: () => void;
 }
 
-const StoryTutorial: React.FC<StoryTutorialProps> = ({ onStartGame }) => {
+const CreditsMenu: React.FC<CreditsMenuProps> = ({ onBack }) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [flicker, setFlicker] = useState(false);
   const [stars, setStars] = useState<
@@ -13,6 +13,7 @@ const StoryTutorial: React.FC<StoryTutorialProps> = ({ onStartGame }) => {
 
   useEffect(() => {
     setIsLoaded(true);
+
     // Generate dim, dying stars
     const newStars = Array.from({ length: 60 }, () => ({
       x: Math.random() * 100,
@@ -32,8 +33,26 @@ const StoryTutorial: React.FC<StoryTutorialProps> = ({ onStartGame }) => {
     return () => clearInterval(flickerInterval);
   }, []);
 
+  const developers = [
+    {
+      name: "Muhammad Ammar Ghifari",
+      nim: "5025231109",
+      avatar: "/pictures/Ammar.png",
+    },
+    {
+      name: "Carolus Nathanell",
+      nim: "5025231136",
+      avatar: "/pictures/Nell.png",
+    },
+    {
+      name: "Muhammad Shafa Narariya",
+      nim: "5025231016",
+      avatar: "/pictures/Shafa.png",
+    },
+  ];
+
   return (
-    <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-black via-slate-950 to-cyan-950/20 flex justify-center items-center overflow-hidden z-20">
+    <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-black via-slate-950 to-cyan-950/20 flex justify-center items-center overflow-hidden z-20">
       {/* Dying Stars */}
       <div className="absolute inset-0 overflow-hidden">
         {stars.map((star, i) => (
@@ -75,14 +94,14 @@ const StoryTutorial: React.FC<StoryTutorialProps> = ({ onStartGame }) => {
           backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' /%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\' /%3E%3C/svg%3E")',
         }}
       />
-      
-      {/* Main Content */}
+
+      {/* Konten utama */}
       <div
-        className={`relative z-10 text-center space-y-8 px-6 max-w-2xl mx-auto transition-all duration-1000 ${
-          isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-12"
+        className={`relative z-10 text-center space-y-10 p-10 transition-all duration-1000 ${
+          isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
         }`}
       >
-        {/* Title */}
+        {/* Judul */}
         <div className="relative mb-8">
           <h1
             className={`text-5xl md:text-7xl font-bold text-cyan-50 tracking-wide filter drop-shadow-[0_0_20px_rgba(0,150,200,0.8)] ${flicker ? 'opacity-70' : ''}`}
@@ -91,70 +110,62 @@ const StoryTutorial: React.FC<StoryTutorialProps> = ({ onStartGame }) => {
               fontFamily: 'monospace',
             }}
           >
-            BRIEFING
+            CREDITS
           </h1>
           {/* Glitch layers */}
           <div className="absolute top-0 left-0 w-full opacity-30 animate-glitch-horror" style={{ color: '#0088AA' }}>
             <h1 className="text-5xl md:text-7xl font-bold tracking-wide" style={{ fontFamily: 'monospace' }}>
-              BRIEFING
+              CREDITS
             </h1>
           </div>
         </div>
 
-        {/* Content Card */}
-        <div className="relative bg-black/80 backdrop-blur-sm p-8 border-2 border-cyan-800/50 shadow-[0_0_30px_rgba(0,139,139,0.3)]"
-          style={{ clipPath: 'polygon(0% 0%, 100% 0%, 100% 98%, 99% 100%, 0% 100%)' }}
-        >
-          <div className="space-y-8 text-left">
-            <section>
-              <h2 className="text-xl font-bold text-cyan-400 mb-2 font-mono tracking-widest">STORY</h2>
-              <p className="text-gray-200 text-sm leading-relaxed font-mono">
-                A mysterious distress signal leads you to an abandoned space
-                station. Secret experiments have opened a rift to an alien
-                dimension, releasing horrors that corrupt the crew. You must
-                survive the whispers from the void and face what remains
-                beyond the rift.
-              </p>
-            </section>
 
-            <section>
-              <h2 className="text-xl font-bold text-cyan-400 mb-2 font-mono tracking-widest">CONTROLS</h2>
-              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-gray-100 text-sm font-mono">
-                {[
-                  ["W A S D", "Move"],
-                  ["SPACE", "Jump"],
-                  ["SHIFT", "Sprint"],
-                  ["MOUSE", "Aim & Fire"],
-                  ["SCROLL", "Switch Weapons"],
-                  ["R", "Reload"],
-                ].map(([key, action], i) => (
-                  <li key={i} className="flex items-center gap-2 p-2 bg-cyan-950/30 rounded border border-cyan-800/30 hover:bg-cyan-900/40 transition">
-                    <kbd className="px-2 py-0.5 bg-cyan-800/40 rounded text-xs text-cyan-300 border border-cyan-600/30 min-w-12 text-center">{key}</kbd>
-                    <span>{action}</span>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          </div>
+        {/* Daftar Pengembang */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 justify-items-center pt-4">
+          {developers.map((dev, index) => (
+            <div
+              key={index}
+              className="relative bg-gradient-to-b from-cyan-900/40 via-slate-900/60 to-black/70 border border-cyan-700/40 p-6 shadow-[0_0_25px_rgba(0,150,255,0.4)] hover:shadow-[0_0_50px_rgba(0,180,255,0.8)] transition-all duration-500 backdrop-blur-md hover:-translate-y-2 w-72"
+              style={{ clipPath: 'polygon(0% 0%, 100% 0%, 100% 95%, 95% 100%, 0% 100%)' }}
+            >
+              <div className="relative w-full h-64 flex justify-center items-end mb-4">
+                <img
+                  src={dev.avatar}
+                  alt={dev.name}
+                  className="object-contain h-full drop-shadow-[0_0_20px_rgba(0,180,255,0.3)]"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent pointer-events-none" />
+              </div>
+              <h2 className="text-xl font-bold text-cyan-100 uppercase tracking-wider">
+                {dev.name}
+              </h2>
+              <p className="text-sm text-cyan-400/80 font-mono mt-1">
+                {dev.nim}
+              </p>
+            </div>
+          ))}
         </div>
 
-        {/* Start Button */}
-        <div className="relative group pt-6">
-            <div className="absolute inset-0 bg-cyan-900/30 rounded blur-xl opacity-60 group-hover:opacity-90 transition-opacity duration-500" />
-            <button
-              className={`relative bg-black border-2 border-cyan-800 text-cyan-200 font-mono font-bold text-lg md:text-xl py-4 px-16 hover:bg-cyan-950 hover:border-cyan-600 hover:text-cyan-50 transition-all duration-300 shadow-[0_0_30px_rgba(0,139,139,0.4)] hover:shadow-[0_0_50px_rgba(0,139,139,0.8)] backdrop-blur-sm ${flicker ? 'animate-pulse' : ''}`}
-              onClick={onStartGame}
-              style={{
-                clipPath: 'polygon(0% 0%, 100% 0%, 100% 85%, 95% 100%, 0% 100%)'
-              }}
-            >
-              <span className="relative z-10 flex items-center gap-3 tracking-widest">
-                <span className="inline-block w-2 h-2 bg-cyan-500 rounded-full animate-pulse" />
-                ENTER THE ABYSS
-                <span className="inline-block w-2 h-2 bg-cyan-500 rounded-full animate-pulse" />
-              </span>
-            </button>
-          </div>
+        {/* Tombol Kembali */}
+        <div className="pt-10">
+            <div className="relative group">
+              <div className="absolute inset-0 bg-cyan-900/30 rounded blur-xl opacity-60 group-hover:opacity-90 transition-opacity duration-500" />
+              <button
+                className={`relative bg-black border-2 border-cyan-800 text-cyan-200 font-mono font-bold text-lg md:text-xl py-3 px-12 hover:bg-cyan-950 hover:border-cyan-600 hover:text-cyan-50 transition-all duration-300 shadow-[0_0_30px_rgba(0,139,139,0.4)] hover:shadow-[0_0_50px_rgba(0,139,139,0.8)] backdrop-blur-sm ${flicker ? 'animate-pulse' : ''}`}
+                onClick={onBack}
+                style={{
+                  clipPath: 'polygon(0% 0%, 100% 0%, 100% 85%, 95% 100%, 0% 100%)',
+                }}
+              >
+                <span className="relative z-10 flex items-center gap-3 tracking-widest">
+                  <span className="inline-block w-2 h-2 bg-cyan-500 rounded-full animate-pulse" />
+                  BACK
+                  <span className="inline-block w-2 h-2 bg-cyan-500 rounded-full animate-pulse" />
+                </span>
+              </button>
+            </div>
+        </div>
       </div>
 
       {/* Corrupted Corner Decorations */}
@@ -181,4 +192,4 @@ const StoryTutorial: React.FC<StoryTutorialProps> = ({ onStartGame }) => {
   );
 };
 
-export default StoryTutorial;
+export default CreditsMenu;
