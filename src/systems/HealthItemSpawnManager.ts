@@ -96,26 +96,33 @@ export class HealthItemSpawnManager {
                 const distance = playerPosition.distanceTo(spawnPoint.position);
 
                 if (distance < this.pickupRadius) {
-        
-                    this.playerController.addHealth(spawnPoint.item.healAmount);
+
+                    const playerStats = this.playerController.getStats();
+
+                    if (playerStats.health < playerStats.maxHealth) {
+
+                        this.playerController.addHealth(spawnPoint.item.healAmount);
+                        window.dispatchEvent(new CustomEvent('medkitPickup'));
+                        
+                        if (this.healSound && this.healSound.isPlaying) {
+                            this.healSound.stop();
+                        }
+                        this.healSound?.play();
+
+                        if (spawnPoint.model) {
+                            this.scene.remove(spawnPoint.model);
+                            spawnPoint.model = null;
+                        }
+                        if (spawnPoint.aura) {
+                            this.scene.remove(spawnPoint.aura);
+                            spawnPoint.aura = undefined;
+                        }
+
+                        spawnPoint.item.dispose();
+                        this.spawnPoints.splice(i, 1);
+                        console.log(`Mengambil item kesehatan di titik spawn!`);
                     
-                    if (this.healSound && this.healSound.isPlaying) {
-                        this.healSound.stop();
                     }
-                    this.healSound?.play();
-
-                    if (spawnPoint.model) {
-                        this.scene.remove(spawnPoint.model);
-                        spawnPoint.model = null;
-                    }
-                    if (spawnPoint.aura) {
-                        this.scene.remove(spawnPoint.aura);
-                        spawnPoint.aura = undefined;
-                    }
-
-                    spawnPoint.item.dispose();
-                    this.spawnPoints.splice(i, 1);
-                    console.log(`Mengambil item kesehatan di titik spawn!`);
 
                 }
         

@@ -1,4 +1,5 @@
 export class PlayerStats {
+
     // Statistik Pemain
     public health = 75;
     public maxHealth = 100;
@@ -10,7 +11,9 @@ export class PlayerStats {
     private staminaDrainRate = 30;
     private staminaRegenRate = 10;
 
-    constructor() {}
+    constructor() {
+        this.updateHUD();
+    }
 
     public update(delta: number, isTryingToSprint: boolean, isMoving: boolean) {
         

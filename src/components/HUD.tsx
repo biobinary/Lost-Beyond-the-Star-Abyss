@@ -27,6 +27,7 @@ export const HUD = () => {
   const [playerStats, setPlayerStats] = useState<PlayerStats>({ health: 100, maxHealth: 100, stamina: 100, maxStamina: 100 });
   const [fps, setFps] = useState(60);
   const [crosshairSpread, setCrosshairSpread] = useState(4);
+  const [showHealEffect, setShowHealEffect] = useState(false);
 
   useEffect(() => {
     
@@ -49,9 +50,17 @@ export const HUD = () => {
       }
     };
 
+    const handleMedkitPickup = () => {
+      setShowHealEffect(true);
+      setTimeout(() => {
+        setShowHealEffect(false);
+      }, 500);
+    };
+
     window.addEventListener('weaponUpdate' as any, handleWeaponUpdate);
     window.addEventListener('playerStatsUpdate' as any, handlePlayerStatsUpdate);
     window.addEventListener('playerMovementUpdate' as any, handlePlayerMovementUpdate);
+    window.addEventListener('medkitPickup', handleMedkitPickup);
 
     // FPS counter
     let frameCount = 0;
@@ -76,11 +85,21 @@ export const HUD = () => {
       window.removeEventListener('weaponUpdate' as any, handleWeaponUpdate);
       window.removeEventListener('playerStatsUpdate' as any, handlePlayerStatsUpdate);
       window.removeEventListener('playerMovementUpdate' as any, handlePlayerMovementUpdate);
+      window.removeEventListener('medkitPickup', handleMedkitPickup);
     };
   }, []);
 
   return (
     <div className="fixed inset-0 pointer-events-none select-none font-mono">
+      {/* Heal Effect Overlay */}
+      <div
+        className={`absolute inset-0 transition-opacity duration-500 ${
+          showHealEffect ? 'opacity-100' : 'opacity-0'
+        }`}
+        style={{
+          background: 'radial-gradient(circle, rgba(0, 255, 150, 0) 0%, rgba(0, 255, 150, 0.25) 80%, rgba(0, 255, 150, 0.4) 100%)',
+        }}
+      />
       
       {/* Dynamic Crosshair */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
