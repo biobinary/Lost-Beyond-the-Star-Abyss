@@ -6,14 +6,15 @@ import { Monster, MonsterConfig } from '../entities/Monster';
 interface MonsterSpawnPoint {
     position: THREE.Vector3;
     config: MonsterConfig;
-    instance?: Monster; // Instance monster yang aktif
+    instance?: Monster;
 }
 
 // Konfigurasi default untuk monster
 const AndromedaConfig: MonsterConfig = {
     modelPath: 'AndromedaMonster.fbx',
-    scale: new THREE.Vector3(0.03, 0.03, 0.03),
+    scale: new THREE.Vector3(0.05, 0.05, 0.05),
     health: 100,
+    rotation: new THREE.Euler(0, Math.PI / 2, 0)
 };
 
 export class MonsterSpawnManager {
@@ -29,20 +30,27 @@ export class MonsterSpawnManager {
 
     private initializeSpawnPoints() {
     
-        const points: { position: THREE.Vector3, config: MonsterConfig }[] = [
-            { position: new THREE.Vector3(0, 0, -1), config: AndromedaConfig },
-            { position: new THREE.Vector3(10, 0, -15), config: AndromedaConfig },
-            { position: new THREE.Vector3(-15, 0, -25), config: AndromedaConfig },
+        const points: { position: THREE.Vector3, rotationY?: number }[] = [
+            { position: new THREE.Vector3(0, 0, -1), rotationY: 90 },
+            { position: new THREE.Vector3(10, 0, -15), rotationY: -90 },
+            { position: new THREE.Vector3(-15, 0, -25) },
         ];
 
         points.forEach(point => {
+
+            const config = { ...AndromedaConfig };
+            
+            if (point.rotationY !== undefined) {
+                config.rotation = new THREE.Euler(0, point.rotationY * (Math.PI / 180), 0);
+            }
+
             this.spawnPoints.push({
                 position: point.position,
-                config: point.config,
+                config: config,
             });
+
         });
         
-        // Langsung spawn semua monster saat inisialisasi
         this.spawnAllMonsters();
 
     }

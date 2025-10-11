@@ -7,6 +7,7 @@ export interface MonsterConfig {
     modelPath: string;
     scale: THREE.Vector3;
     health: number;
+    rotation: THREE.Euler;
 }
 
 export class Monster {
@@ -35,6 +36,7 @@ export class Monster {
 
             this.model.position.copy(position);
             this.model.scale.copy(this.config.scale);
+            this.model.rotation.copy(this.config.rotation);
             
             this.model.traverse((child) => {
                 if (child instanceof THREE.Mesh) {
