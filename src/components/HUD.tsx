@@ -86,33 +86,6 @@ export const HUD = () => {
           </div>
         </div>
 
-        {/* Controls Info */}
-        <div className="bg-card/80 backdrop-blur-sm px-4 py-3 rounded-lg border border-primary/20 space-y-1">
-          <div className="flex items-center gap-3">
-            <kbd className="px-2 py-1 bg-muted rounded text-xs font-mono text-primary border border-primary/30">W A S D</kbd>
-            <span className="text-sm text-foreground/70">Move</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <kbd className="px-2 py-1 bg-muted rounded text-xs font-mono text-primary border border-primary/30">SPACE</kbd>
-            <span className="text-sm text-foreground/70">Jump</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <kbd className="px-2 py-1 bg-muted rounded text-xs font-mono text-primary border border-primary/30">SHIFT</kbd>
-            <span className="text-sm text-foreground/70">Sprint</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <kbd className="px-2 py-1 bg-muted rounded text-xs font-mono text-primary border border-primary/30">MOUSE</kbd>
-            <span className="text-sm text-foreground/70">Look / Shoot</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <kbd className="px-2 py-1 bg-muted rounded text-xs font-mono text-primary border border-primary/30">SCROLL</kbd>
-            <span className="text-sm text-foreground/70">Switch Weapon</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <kbd className="px-2 py-1 bg-muted rounded text-xs font-mono text-primary border border-primary/30">R</kbd>
-            <span className="text-sm text-foreground/70">Reload</span>
-          </div>
-        </div>
       </div>
 
       {/* Weapon Info - Bottom Right */}

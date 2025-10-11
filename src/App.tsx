@@ -9,17 +9,23 @@ import NotFound from "./pages/NotFound";
 import MainMenu from "./components/MainMenu";
 import PauseMenu from "./components/PauseMenu";
 import SettingsMenu from "./components/SettingsMenu";
+import StoryTutorial from "./components/StoryTutorial"; // Import komponen baru
 
 const queryClient = new QueryClient();
 
 function App() {
-
   const [inGame, setInGame] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [isMusicEnabled, setIsMusicEnabled] = useState(true);
+  const [showStory, setShowStory] = useState(false); // State baru untuk menampilkan halaman cerita
+
+  const handleStartFromMenu = () => {
+    setShowStory(true);
+  };
 
   const startGame = () => {
+    setShowStory(false);
     setInGame(true);
     setIsPaused(false);
   };
@@ -57,8 +63,12 @@ function App() {
     });
   };
 
+  if (showStory) {
+    return <StoryTutorial onStartGame={startGame} />;
+  }
+
   if (!inGame) {
-    return <MainMenu onStartGame={startGame} />;
+    return <MainMenu onStartGame={handleStartFromMenu} />;
   }
 
   return (
