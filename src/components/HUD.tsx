@@ -17,10 +17,16 @@ interface PlayerStats {
   maxStamina: number;
 }
 
+interface PlayerMovementState {
+  isMoving: boolean;
+  isSprinting: boolean;
+}
+
 export const HUD = () => {
   const [weaponInfo, setWeaponInfo] = useState<WeaponInfo | null>(null);
   const [playerStats, setPlayerStats] = useState<PlayerStats>({ health: 100, maxHealth: 100, stamina: 100, maxStamina: 100 });
   const [fps, setFps] = useState(60);
+  const [crosshairSpread, setCrosshairSpread] = useState(4);
 
   useEffect(() => {
     
@@ -32,8 +38,20 @@ export const HUD = () => {
       setPlayerStats(event.detail);
     };
 
+    const handlePlayerMovementUpdate = (event: CustomEvent<PlayerMovementState>) => {
+      const { isMoving, isSprinting } = event.detail;
+      if (isSprinting) {
+        setCrosshairSpread(12);
+      } else if (isMoving) {
+        setCrosshairSpread(8);
+      } else {
+        setCrosshairSpread(4);
+      }
+    };
+
     window.addEventListener('weaponUpdate' as any, handleWeaponUpdate);
     window.addEventListener('playerStatsUpdate' as any, handlePlayerStatsUpdate);
+    window.addEventListener('playerMovementUpdate' as any, handlePlayerMovementUpdate);
 
     // FPS counter
     let frameCount = 0;
@@ -57,19 +75,27 @@ export const HUD = () => {
     return () => {
       window.removeEventListener('weaponUpdate' as any, handleWeaponUpdate);
       window.removeEventListener('playerStatsUpdate' as any, handlePlayerStatsUpdate);
+      window.removeEventListener('playerMovementUpdate' as any, handlePlayerMovementUpdate);
     };
   }, []);
 
   return (
     <div className="fixed inset-0 pointer-events-none select-none">
-      {/* Crosshair */}
+      
+      {/* Crosshair Dinamis */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-        <div className="relative w-8 h-8">
-          <div className="absolute top-1/2 left-0 w-full h-0.5 bg-primary opacity-70 -translate-y-1/2" />
-          <div className="absolute left-1/2 top-0 w-0.5 h-full bg-primary opacity-70 -translate-x-1/2" />
+        <div className="relative w-1 h-1"> {/* Titik pusat sebagai acuan */}
+          {/* Titik Tengah */}
           <div className="absolute top-1/2 left-1/2 w-1 h-1 bg-primary rounded-full -translate-x-1/2 -translate-y-1/2 shadow-[0_0_10px_hsl(var(--primary))]" />
+
+          {/* Garis Crosshair */}
+          <div className="w-0.5 h-2 bg-primary opacity-70 transition-all duration-200 absolute left-1/2 -translate-x-1/2" style={{ bottom: `${crosshairSpread}px` }} />
+          <div className="w-0.5 h-2 bg-primary opacity-70 transition-all duration-200 absolute left-1/2 -translate-x-1/2" style={{ top: `${crosshairSpread}px` }} />
+          <div className="w-2 h-0.5 bg-primary opacity-70 transition-all duration-200 absolute top-1/2 -translate-y-1/2" style={{ right: `${crosshairSpread}px` }} />
+          <div className="w-2 h-0.5 bg-primary opacity-70 transition-all duration-200 absolute top-1/2 -translate-y-1/2" style={{ left: `${crosshairSpread}px` }} />
         </div>
       </div>
+
 
       {/* Player Stats - Bottom Left */}
       <div className="absolute bottom-6 left-6 space-y-4">

@@ -17,6 +17,16 @@ export class PlayerController {
     public update(delta: number, elapsedTime: number) {
         this.stats.update(delta, this.input.moveState.sprint, this.movement.isMoving());
         this.movement.update(delta, elapsedTime, this.stats.canSprint);
+        
+        this.dispatchMovementState();
+    }
+
+    private dispatchMovementState() {
+        const detail = {
+            isMoving: this.movement.isMoving(),
+            isSprinting: this.input.moveState.sprint && this.stats.canSprint,
+        };
+        window.dispatchEvent(new CustomEvent('playerMovementUpdate', { detail }));
     }
 
     public takeDamage(amount: number) {
