@@ -91,9 +91,8 @@ export class WeaponManager {
 
         // Reload
         if (this.input.isReloading) {
-            currentWeapon.reload();
+            currentWeapon.reload(this);
             this.input.isReloading = false;
-            this.updateHUD(); // Update HUD setelah reload
         }
 
         // Switch senjata via wheel (one-time trigger)
@@ -111,7 +110,7 @@ export class WeaponManager {
 
     }
 
-    private updateHUD() {
+    public updateHUD() {
         
         const currentWeapon = this.getCurrentWeapon();
         
@@ -128,7 +127,6 @@ export class WeaponManager {
             // Dispatch custom event untuk HUD
             window.dispatchEvent(new CustomEvent('weaponUpdate', { detail: weaponInfo }));
         }
-
     }
 
     // Helper: Get senjata current

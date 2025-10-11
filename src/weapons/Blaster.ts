@@ -3,6 +3,7 @@ import * as THREE from "three";
 import { EffectsManager } from "../systems/EffectsManager";
 import { BaseWeapon } from "./BaseWeapon";
 import { WeaponConfig } from "./IWeapon";
+import { WeaponManager } from "@/systems/WeaponManager";
 
 // Definisikan konfigurasi spesifik untuk Blaster
 const BlasterConfig: WeaponConfig = {
@@ -21,6 +22,7 @@ const BlasterConfig: WeaponConfig = {
 export class Blaster extends BaseWeapon {
     private raycaster = new THREE.Raycaster();
     private shootSound?: THREE.Audio;
+    private reloadSound?: THREE.Audio;
 
     constructor(private listener: THREE.AudioListener) {
         super(BlasterConfig, 30); // 30 peluru per magasin
@@ -34,6 +36,13 @@ export class Blaster extends BaseWeapon {
             this.shootSound!.setBuffer(buffer);
             this.shootSound!.setVolume(0.4);
             this.shootSound!.setLoop(false);
+        });
+
+        this.reloadSound = new THREE.Audio(this.listener);
+        audioLoader.load('/Audio/sound/mag-in.mp3', (buffer) => {
+            this.reloadSound!.setBuffer(buffer);
+            this.reloadSound!.setVolume(0.8);
+            this.reloadSound!.setLoop(false);
         });
     }
 
@@ -129,5 +138,28 @@ export class Blaster extends BaseWeapon {
 
         // Buat bullet trail dari muzzle ke endpoint
         effects.createBulletTrail(muzzleWorld, bulletEnd);
+    }
+
+    public reload(weaponManager: WeaponManager) {
+        let ammoChange = (this.maxAmmo - this.ammo)
+
+        if (this.reserveAmmo == 0) {
+            console.log(`${this.config.name} no reserve ammo to reload!`);
+            return;
+        } else if (this.reserveAmmo >= ammoChange) {
+            this.reserveAmmo -= ammoChange;
+            this.ammo += ammoChange;
+        } else if (this.reserveAmmo < ammoChange) {
+            this.ammo += this.reserveAmmo;
+            this.reserveAmmo = 0;
+        }
+
+        if (this.reloadSound && this.reloadSound.isPlaying) {
+            this.reloadSound.stop();
+        }
+        this.reloadSound?.play();
+        weaponManager.updateHUD();
+        
+        console.log(`${this.config.name} reloaded. Clip: ${this.ammo}/${this.maxAmmo}, Reserve: ${this.reserveAmmo}`);
     }
 }   

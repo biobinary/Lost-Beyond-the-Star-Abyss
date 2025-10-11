@@ -3,6 +3,7 @@ import * as THREE from "three";
 import { EffectsManager } from "../systems/EffectsManager";
 import { BaseWeapon } from "./BaseWeapon";
 import { WeaponConfig } from "./IWeapon";
+import { WeaponManager } from "@/systems/WeaponManager";
 
 const ShotgunConfig: WeaponConfig = {
     name: "Shotgun",
@@ -23,6 +24,7 @@ export class Shotgun extends BaseWeapon {
     private pelletCount = 8;
     private spreadAngle = 0.35; // dalam radian
     private shootSound?: THREE.Audio;
+    private reloadSound?: THREE.Audio;
     
     private loadSound() {
         const audioLoader = new THREE.AudioLoader();
@@ -31,6 +33,12 @@ export class Shotgun extends BaseWeapon {
             this.shootSound!.setBuffer(buffer);
             this.shootSound!.setVolume(0.4);
             this.shootSound!.setLoop(false);
+        });
+        this.reloadSound = new THREE.Audio(this.listener);
+        audioLoader.load('/Audio/sound/gun-reload-2.mp3', (buffer) => {
+            this.reloadSound!.setBuffer(buffer);
+            this.reloadSound!.setVolume(0.6);
+            this.reloadSound!.setLoop(false);
         });
     }
 
@@ -128,5 +136,36 @@ export class Shotgun extends BaseWeapon {
             effects.createBulletTrail(muzzleWorld, bulletEnd);
 
         }
+    }
+    
+    public async reload(weaponManager: WeaponManager) {
+        const reloadDelayPerShell = 800;
+
+        if (this.reserveAmmo == 0) {
+            console.log(`${this.config.name} no reserve ammo to reload!`);
+            return;
+        }
+
+        while (this.ammo < this.maxAmmo && this.reserveAmmo > 0) {
+            this.ammo++;
+            this.reserveAmmo--;
+            this.playClone(this.reloadSound);
+            await this.wait(reloadDelayPerShell);
+            weaponManager.updateHUD();
+        }
+        console.log(`${this.config.name} reloaded. Clip: ${this.ammo}/${this.maxAmmo}, Reserve: ${this.reserveAmmo}`);
+    }
+    
+    private wait(ms: number) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+    }
+
+    private playClone(sound?: THREE.Audio) {
+        if (!sound?.buffer) return;
+        const clone = new THREE.Audio(this.listener);
+        clone.setBuffer(sound.buffer);
+        clone.setVolume(sound.getVolume());
+        clone.play();
+        clone.source.onended = () => clone.disconnect();
     }
 }

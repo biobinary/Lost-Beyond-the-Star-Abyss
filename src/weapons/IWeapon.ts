@@ -1,6 +1,7 @@
 // src/weapons/IWeapon.ts
 import * as THREE from "three";
 import { EffectsManager } from "../systems/EffectsManager";
+import { WeaponManager } from "../systems/WeaponManager";
 
 // Definisikan konfigurasi umum untuk semua senjata
 export interface WeaponConfig {
@@ -30,6 +31,6 @@ export interface IWeapon {
     load(camera?: THREE.Object3D): Promise<void>;
     update(elapsedTime: number, deltaTime: number): void;
     fire(camera: THREE.Camera, scene: THREE.Scene, effects: EffectsManager): void;
-    reload(): void;
+    reload(weaponManager: WeaponManager): void;
     dispose(): void;
 }

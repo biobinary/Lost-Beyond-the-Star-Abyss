@@ -4,6 +4,7 @@ import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader.js";
 import { toast } from "sonner";
 import { IWeapon, WeaponConfig } from "./IWeapon";
 import { EffectsManager } from "../systems/EffectsManager";
+import { WeaponManager } from "../systems/WeaponManager";
 
 export abstract class BaseWeapon implements IWeapon {
   public model: THREE.Group | null = null;
@@ -98,20 +99,7 @@ export abstract class BaseWeapon implements IWeapon {
     effects: EffectsManager
   ): void;
 
-  public reload(): void {
-    let ammoChange = (this.maxAmmo - this.ammo)
-    if (this.reserveAmmo == 0) {
-      console.log(`${this.config.name} no reserve ammo to reload!`);
-      return;
-    } else if (this.reserveAmmo >= ammoChange) {
-      this.reserveAmmo -= ammoChange;
-      this.ammo += ammoChange;
-    } else if (this.reserveAmmo < ammoChange) {
-      this.ammo += this.reserveAmmo;
-      this.reserveAmmo = 0;
-    }
-    console.log(`${this.config.name} reloaded. Clip: ${this.ammo}/${this.maxAmmo}, Reserve: ${this.reserveAmmo}`);
-  }
+  public abstract reload(weaponManager: WeaponManager): void;
 
   protected canShoot(): boolean {
     const now = performance.now();
@@ -175,4 +163,5 @@ export abstract class BaseWeapon implements IWeapon {
       });
     }
   }
+  
 }
