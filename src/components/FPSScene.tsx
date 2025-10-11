@@ -9,7 +9,7 @@ import { EffectsManager } from "../systems/EffectsManager";
 // Spawn Managers
 import { WeaponSpawnManager } from "@/systems/WeaponSpawnManager";
 import { HealthItemSpawnManager } from "@/systems/HealthItemSpawnManager";
-
+import { MonsterManager } from "../systems/MonsterManager";
 export const FPSScene = ({ isPaused, onTogglePause, isMusicEnabled }: { isPaused: boolean; onTogglePause: () => void; isMusicEnabled: boolean }) => {
   
   const containerRef = useRef<HTMLDivElement>(null);
@@ -42,10 +42,10 @@ export const FPSScene = ({ isPaused, onTogglePause, isMusicEnabled }: { isPaused
     const playerController = new PlayerController(camera, inputManager, colliders);
     const effectsManager = new EffectsManager(scene);
     const weaponManager = new WeaponManager(camera, scene, effectsManager, inputManager);
-
+    const monsterManager = new MonsterManager(scene);
     const weaponSpawnManager = new WeaponSpawnManager(scene, weaponManager, playerController, effectsManager);
     const healthItemSpawnManager = new HealthItemSpawnManager(scene, playerController, effectsManager);
-
+    
     const clock = new THREE.Clock();
     let animationFrameId: number;
 
@@ -74,7 +74,7 @@ export const FPSScene = ({ isPaused, onTogglePause, isMusicEnabled }: { isPaused
       weaponManager.update(elapsedTime, delta);
       weaponSpawnManager.update(elapsedTime, delta);
       healthItemSpawnManager.update(elapsedTime, delta);
-      
+      monsterManager.update(delta)
       renderer.render(scene, camera);
 
     };
