@@ -1,6 +1,6 @@
 export class PlayerStats {
     // Statistik Pemain
-    public health = 100;
+    public health = 75;
     public maxHealth = 100;
     public stamina = 100;
     public maxStamina = 100;

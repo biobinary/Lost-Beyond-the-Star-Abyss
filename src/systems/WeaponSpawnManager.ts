@@ -36,7 +36,7 @@ export class WeaponSpawnManager {
         this.weaponManager = weaponManager;
         this.playerController = playerController;
         this.effects = effects;
-        this.listener =listener;
+        this.listener = listener;
 
         this.initializeSpawnPoints();
     }

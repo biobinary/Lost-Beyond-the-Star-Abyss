@@ -14,20 +14,35 @@ interface SpawnPoint {
 export class HealthItemSpawnManager {
 
     private scene: THREE.Scene;
+    private listener: THREE.AudioListener;
     private playerController: PlayerController;
     private effects: EffectsManager;
     private spawnPoints: SpawnPoint[] = [];
     private pickupRadius = 1.5;
+    private healSound: THREE.Audio
 
     constructor(
         scene: THREE.Scene,
         playerController: PlayerController,
-        effects: EffectsManager
+        effects: EffectsManager,
+        listener: THREE.AudioListener
     ) {
         this.scene = scene;
         this.playerController = playerController;
         this.effects = effects;
+        this.listener = listener;
         this.initializeSpawnPoints();
+        this.loadSound();
+    }
+
+    private loadSound() {
+        const audioLoader = new THREE.AudioLoader();
+        this.healSound = new THREE.Audio(this.listener);
+        audioLoader.load('/Audio/sound/half_life_medkit_sfx.mp3', (buffer) => {
+            this.healSound!.setBuffer(buffer);
+            this.healSound!.setVolume(0.4);
+            this.healSound!.setLoop(false);
+        });
     }
 
     private async initializeSpawnPoints() {
@@ -84,6 +99,11 @@ export class HealthItemSpawnManager {
         
                     this.playerController.addHealth(spawnPoint.item.healAmount);
                     
+                    if (this.healSound && this.healSound.isPlaying) {
+                        this.healSound.stop();
+                    }
+                    this.healSound?.play();
+
                     if (spawnPoint.model) {
                         this.scene.remove(spawnPoint.model);
                         spawnPoint.model = null;
