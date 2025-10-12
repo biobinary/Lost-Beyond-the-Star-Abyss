@@ -1,6 +1,7 @@
 // src/systems/MonsterManager.ts (diganti namanya menjadi MonsterSpawnManager.ts)
 import * as THREE from 'three';
 import { Monster, MonsterConfig } from '../entities/Monster';
+import { PlayerController } from './PlayerController';
 
 // Definisikan tipe untuk spawn point monster
 interface MonsterSpawnPoint {
@@ -15,7 +16,6 @@ const AndromedaConfig: MonsterConfig = {
     scale: new THREE.Vector3(0.05, 0.05, 0.05),
     health: 100,
     rotation: new THREE.Euler(0, Math.PI / 2, 0),
-    // Properti AI Patroli
     speed: 1.0,           
     patrolRadius: 10.0,  
 };
@@ -25,11 +25,12 @@ export class MonsterSpawnManager {
     private scene: THREE.Scene;
     private spawnPoints: MonsterSpawnPoint[] = [];
     public activeMonsters: Monster[] = [];
-    private player: IPlayer;
+    private player: PlayerController;
     private colliders: any[];
-    constructor(scene: THREE.Scene, playerStats: IPlayer, colliders: any[]) {
+
+    constructor(scene: THREE.Scene, player: PlayerController, colliders: any[]) {
         this.scene = scene;
-        this.player = playerStats;
+        this.player = player;
         this.colliders = colliders;
         this.initializeSpawnPoints();
     }
@@ -64,7 +65,7 @@ export class MonsterSpawnManager {
     private async spawnAllMonsters() {
         for (const spawnPoint of this.spawnPoints) {
             if (!spawnPoint.instance) {
-                const monster = new Monster(this.scene, spawnPoint.config);
+                const monster = new Monster(this.scene, spawnPoint.config, this.colliders);
                 await monster.load(spawnPoint.position);
                 
                 spawnPoint.instance = monster;

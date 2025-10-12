@@ -18,10 +18,6 @@ export enum MonsterState {
     IDLE = 'IDLE',
     DEAD = 'DEAD',
 }
-interface IPlayer { 
-    takeDamage(amount: number): void;
-    position: THREE.Vector3;
-}
 
 export class Monster {
 
@@ -102,7 +98,7 @@ export class Monster {
 
     }
 
-    public update(deltaTime: number, player?: IPlayer) {
+    public update(deltaTime: number) {
         if (!this.model || this.state === MonsterState.DEAD) return;
         if (this.mixer) {
             this.mixer.update(deltaTime);
