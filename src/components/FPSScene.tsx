@@ -37,7 +37,7 @@ export const FPSScene = ({ isPaused, onTogglePause, isMusicEnabled }: { isPaused
 
     window.addEventListener('togglePause', handleTogglePause);
 
-    const { scene, camera, renderer, colliders, listener  } = threeObjects;
+    const { scene, camera, renderer, colliders, listener, detectionArea  } = threeObjects;
 
     const inputManager = new InputManager(renderer.domElement);
     const playerController = new PlayerController(camera, inputManager, colliders);
@@ -47,6 +47,7 @@ export const FPSScene = ({ isPaused, onTogglePause, isMusicEnabled }: { isPaused
     const weaponSpawnManager = new WeaponSpawnManager(scene, weaponManager, playerController, effectsManager, listener);
     const healthItemSpawnManager = new HealthItemSpawnManager(scene, playerController, effectsManager, listener);
     
+    let cutsceneStarted = false;
     const clock = new THREE.Clock();
     let animationFrameId: number;
 
@@ -78,12 +79,20 @@ export const FPSScene = ({ isPaused, onTogglePause, isMusicEnabled }: { isPaused
       weaponSpawnManager.update(elapsedTime, delta);
       healthItemSpawnManager.update(elapsedTime, delta);
       monsterSpawnManager.update(delta)
-
+      
+      if (detectionArea.containsPoint(camera.position) && !cutsceneStarted) {
+        startCutscene();
+      }
       renderer.render(scene, camera);
 
     };
 
     animate();
+
+    const startCutscene = () => {
+      cutsceneStarted = true;
+      console.log("Cutscene")
+    }
 
     return () => {
       window.removeEventListener('togglePause', handleTogglePause);

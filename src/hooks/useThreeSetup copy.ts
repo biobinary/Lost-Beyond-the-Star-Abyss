@@ -11,6 +11,7 @@ export const useThreeSetup = (containerRef: React.RefObject<HTMLDivElement>) => 
     renderer: THREE.WebGLRenderer;
     colliders: THREE.Mesh[];
     listener: THREE.AudioListener;
+    detectionArea: THREE.Box3;
   } | null>(null);
 
   useEffect(() => {
@@ -126,8 +127,17 @@ export const useThreeSetup = (containerRef: React.RefObject<HTMLDivElement>) => 
 
     loadObject('Map.glb', 0, 0, 5, -90);
     loadObject('NavMesh.glb', 0, 0, 5, 90);
+    // Create a visible debug box (optional)
+    const boxGeometry = new THREE.BoxGeometry(5, 5, 5);
+    const boxMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true });
+    const detectionBox = new THREE.Mesh(boxGeometry, boxMaterial);
+    detectionBox.position.set(0, 2.5, -10);
+    scene.add(detectionBox);
 
-    setThreeObjects({ scene, camera, renderer, colliders, listener });
+    // Create a bounding box for collision detection
+    const detectionArea = new THREE.Box3().setFromObject(detectionBox);
+
+    setThreeObjects({ scene, camera, renderer, colliders, listener, detectionArea });
 
     // --- Handlers & Cleanup ---
     const handleResize = () => {
