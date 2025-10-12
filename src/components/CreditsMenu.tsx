@@ -38,16 +38,19 @@ const CreditsMenu: React.FC<CreditsMenuProps> = ({ onBack }) => {
       name: "Muhammad Ammar Ghifari",
       nim: "5025231109",
       avatar: "/pictures/Ammar.png",
+      github: "https://github.com/biobinary",
     },
     {
       name: "Carolus Nathanell",
       nim: "5025231136",
       avatar: "/pictures/Nell.png",
+      github: "https://github.com/CarolusNathanell",
     },
     {
       name: "Muhammad Shafa Narariya",
       nim: "5025231016",
       avatar: "/pictures/Shafa.png",
+      github: "https://github.com/ItsPong",
     },
   ];
 
@@ -104,7 +107,7 @@ const CreditsMenu: React.FC<CreditsMenuProps> = ({ onBack }) => {
         {/* Judul */}
         <div className="relative mb-8">
           <h1
-            className={`text-5xl md:text-7xl font-bold text-cyan-50 tracking-wide filter drop-shadow-[0_0_20px_rgba(0,150,200,0.8)] ${flicker ? 'opacity-70' : ''}`}
+            className={`text-5xl md:text-7xl font-bold text-cyan-50 tracking-wide filter alienate-shadow-[0_0_20px_rgba(0,150,200,0.8)] ${flicker ? 'opacity-70' : ''}`}
             style={{
               textShadow: '2px 2px 4px rgba(0,0,0,0.8), 0 0 40px rgba(0,100,139,0.6)',
               fontFamily: 'monospace',
@@ -119,7 +122,6 @@ const CreditsMenu: React.FC<CreditsMenuProps> = ({ onBack }) => {
             </h1>
           </div>
         </div>
-
 
         {/* Daftar Pengembang */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12 justify-items-center pt-4">
@@ -143,28 +145,41 @@ const CreditsMenu: React.FC<CreditsMenuProps> = ({ onBack }) => {
               <p className="text-sm text-cyan-400/80 font-mono mt-1">
                 {dev.nim}
               </p>
+              <a
+                href={dev.github}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-cyan-300 font-mono mt-2 inline-block hover:text-cyan-100 transition-colors duration-300"
+              >
+                <span className="flex items-center gap-2">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12c0 4.42 2.87 8.17 6.84 9.49.5.09.66-.22.66-.49v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.46-1.16-1.12-1.47-1.12-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.89 1.52 2.34 1.08 2.91.83.09-.65.35-1.08.64-1.33-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02A9.56 9.56 0 0112 6.8c.85 0 1.71.11 2.51.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.38.2 2.4.1 2.65.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.69-4.56 4.94.36.31.68.92.68 1.85v2.74c0 .27.16.59.66.49A10.01 10.01 0 0022 12c0-5.52-4.48-10-10-10z" />
+                  </svg>
+                  GitHub
+                </span>
+              </a>
             </div>
           ))}
         </div>
 
         {/* Tombol Kembali */}
         <div className="pt-10">
-            <div className="relative group">
-              <div className="absolute inset-0 bg-cyan-900/30 rounded blur-xl opacity-60 group-hover:opacity-90 transition-opacity duration-500" />
-              <button
-                className={`relative bg-black border-2 border-cyan-800 text-cyan-200 font-mono font-bold text-lg md:text-xl py-3 px-12 hover:bg-cyan-950 hover:border-cyan-600 hover:text-cyan-50 transition-all duration-300 shadow-[0_0_30px_rgba(0,139,139,0.4)] hover:shadow-[0_0_50px_rgba(0,139,139,0.8)] backdrop-blur-sm ${flicker ? 'animate-pulse' : ''}`}
-                onClick={onBack}
-                style={{
-                  clipPath: 'polygon(0% 0%, 100% 0%, 100% 85%, 95% 100%, 0% 100%)',
-                }}
-              >
-                <span className="relative z-10 flex items-center gap-3 tracking-widest">
-                  <span className="inline-block w-2 h-2 bg-cyan-500 rounded-full animate-pulse" />
-                  BACK
-                  <span className="inline-block w-2 h-2 bg-cyan-500 rounded-full animate-pulse" />
-                </span>
-              </button>
-            </div>
+          <div className="relative group">
+            <div className="absolute inset-0 bg-cyan-900/30 rounded blur-xl opacity-60 group-hover:opacity-90 transition-opacity duration-500" />
+            <button
+              className={`relative bg-black border-2 border-cyan-800 text-cyan-200 font-mono font-bold text-lg md:text-xl py-3 px-12 hover:bg-cyan-950 hover:border-cyan-600 hover:text-cyan-50 transition-all duration-300 shadow-[0_0_30px_rgba(0,139,139,0.4)] hover:shadow-[0_0_50px_rgba(0,139,139,0.8)] backdrop-blur-sm ${flicker ? 'animate-pulse' : ''}`}
+              onClick={onBack}
+              style={{
+                clipPath: 'polygon(0% 0%, 100% 0%, 100% 85%, 95% 100%, 0% 100%)',
+              }}
+            >
+              <span className="relative z-10 flex items-center gap-3 tracking-widest">
+                <span className="inline-block w-2 h-2 bg-cyan-500 rounded-full animate-pulse" />
+                BACK
+                <span className="inline-block w-2 h-2 bg-cyan-500 rounded-full animate-pulse" />
+              </span>
+            </button>
+          </div>
         </div>
       </div>
 
