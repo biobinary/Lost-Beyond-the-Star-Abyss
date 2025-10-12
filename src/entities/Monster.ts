@@ -279,9 +279,11 @@ export class Monster {
             console.warn('Monster outside navmesh group');
             return;
         }
+        
+        const closest = this.pathfinding.getClosestNode(this.model.position, this.zone, groupID);
 
         const newPath = this.pathfinding.findPath(
-            this.model.position,
+            closest.centroid,
             targetPosition,
             this.zone,
             groupID
@@ -290,6 +292,9 @@ export class Monster {
         if (newPath && newPath.length > 0) {
             this.path = newPath;
             this.currentPathTarget = targetPosition.clone();
+            this.pathfindingHelper.reset();
+            this.pathfindingHelper.setPlayerPosition(this.model.position);
+            this.pathfindingHelper.setTargetPosition(targetPosition);
             this.pathfindingHelper.setPath(this.path);
         } else {
             this.clearPath();
@@ -359,7 +364,7 @@ export class Monster {
         if (!this.model) return [];
 
         const candidates: THREE.Vector3[] = [];
-        const attemptCount = 10;
+        const attemptCount = 50;
         const minDistance = 3.0;
 
         for (let i = 0; i < attemptCount; i++) {

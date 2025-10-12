@@ -35,7 +35,7 @@ export class MonsterSpawnManager {
     private player: PlayerController;
     private colliders: any[];
     private pathfinding: Pathfinding;
-    private navmesh: THREE.Mesh;
+    private navmesh;
     private ZONE = 'level';
     private navmeshReady = false;
 
@@ -59,21 +59,14 @@ export class MonsterSpawnManager {
             this.scene.add(gltf.scene);
 
             let navmeshFound = false;
-            gltf.scene.traverse((child) => {
-                if (child instanceof THREE.Mesh && !navmeshFound) {
-                    console.log('Found mesh:', child.name, child.type);
-                    console.log('Geometry:', child.geometry);
-                    console.log('Vertices count:', child.geometry.attributes.position?.count);
-                        
-                    this.navmesh = child as THREE.Mesh;
+            gltf.scene.traverse(node => {
+                if (!this.navmesh && node.isObject3D && node.children && node.children.length > 0) {                    
+                    this.navmesh = node.children[0];
 
-                    const zoneData = Pathfinding.createZone(child.geometry);
-                    console.log('Zone data created:', zoneData);
-                    console.log('Groups in zone:', Object.keys(zoneData.groups).length);
+                    const zoneData = Pathfinding.createZone(this.navmesh.geometry);
 
                     this.pathfinding.setZoneData(this.ZONE, zoneData);
                     navmeshFound = true;
-
                 }
 
             });
