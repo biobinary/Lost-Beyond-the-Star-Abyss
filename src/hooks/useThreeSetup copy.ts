@@ -95,7 +95,7 @@ export const useThreeSetup = (containerRef: React.RefObject<HTMLDivElement>) => 
     scene.add(directionalLight);
 
     // Environment Setup
-    async function loadObject(modelName: string, xPos: number, yPos: number, zPos: number, ydeg: number){
+    async function loadObject(modelName: string, xPos: number, yPos: number, zPos: number, ydeg: number, visible: boolean){
       const modelPath = '../../models/' + modelName;
 
       try {
@@ -115,6 +115,7 @@ export const useThreeSetup = (containerRef: React.RefObject<HTMLDivElement>) => 
           model.scale.set(1.5, 1.5, 1.5);
           model.position.set(xPos, yPos, zPos);
           model.rotation.y = ydeg * Math.PI / 180;
+          model.visible = visible;
 
           scene.add(model);
         });
@@ -125,8 +126,9 @@ export const useThreeSetup = (containerRef: React.RefObject<HTMLDivElement>) => 
       }
     }
 
-    loadObject('Map.glb', 0, 0, 5, -90);
-    loadObject('NavMesh.glb', 0, 0, 5, 90);
+    loadObject('Map.glb', 0, 0, 5, -90, true);
+    loadObject('NavMesh.glb', 0, 0, 5, 90, false);
+
     // Create a visible debug box (optional)
     const boxGeometry = new THREE.BoxGeometry(5, 5, 5);
     const boxMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true });
