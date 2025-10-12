@@ -1,3 +1,4 @@
+// src/components/FPSScene.tsx
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { useThreeSetup } from "../hooks/useThreeSetup copy";
@@ -11,7 +12,7 @@ import { WeaponSpawnManager } from "@/systems/WeaponSpawnManager";
 import { HealthItemSpawnManager } from "@/systems/HealthItemSpawnManager";
 import { MonsterSpawnManager } from "@/systems/MonsterManager";
 
-export const FPSScene = ({ isPaused, onTogglePause, isMusicEnabled }: { isPaused: boolean; onTogglePause: () => void; isMusicEnabled: boolean }) => {
+export const FPSScene = ({ isPaused, onTogglePause, isMusicEnabled, onPlayerDied }: { isPaused: boolean; onTogglePause: () => void; isMusicEnabled: boolean; onPlayerDied: () => void; }) => {
   
   const containerRef = useRef<HTMLDivElement>(null);
   const threeObjects = useThreeSetup(containerRef);
@@ -35,7 +36,12 @@ export const FPSScene = ({ isPaused, onTogglePause, isMusicEnabled }: { isPaused
       onTogglePause();
     };
 
+    const handlePlayerDied = () => {
+        onPlayerDied();
+    }
+
     window.addEventListener('togglePause', handleTogglePause);
+    window.addEventListener('playerDied', handlePlayerDied);
 
     const { scene, camera, renderer, colliders, listener, detectionArea  } = threeObjects;
 
@@ -144,6 +150,7 @@ export const FPSScene = ({ isPaused, onTogglePause, isMusicEnabled }: { isPaused
 
     return () => {
       window.removeEventListener('togglePause', handleTogglePause);
+      window.removeEventListener('playerDied', handlePlayerDied);
       cancelAnimationFrame(animationFrameId);
       inputManager.dispose();
     };

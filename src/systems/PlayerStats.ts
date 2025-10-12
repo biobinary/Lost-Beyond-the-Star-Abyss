@@ -1,3 +1,4 @@
+// src/systems/PlayerStats.ts
 export class PlayerStats {
 
     // Statistik Pemain
@@ -54,6 +55,10 @@ export class PlayerStats {
         
         if (this.health < 0) {
             this.health = 0;
+        }
+
+        if (this.health === 0) {
+            window.dispatchEvent(new CustomEvent('playerDied'));
         }
 
         this.updateHUD();

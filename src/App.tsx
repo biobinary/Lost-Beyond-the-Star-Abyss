@@ -1,3 +1,4 @@
+// src/App.tsx
 import { useState, useEffect, useCallback } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -11,6 +12,7 @@ import PauseMenu from "./components/PauseMenu";
 import SettingsMenu from "./components/SettingsMenu";
 import StoryTutorial from "./components/StoryTutorial";
 import CreditsMenu from "./components/CreditsMenu";
+import GameOver from "./components/GameOver";
 import {PodWindowOverlay} from "./components/PodWindowOverlay";
 
 function FadeOverlay({ opacity }: { opacity: number }) {
@@ -38,6 +40,7 @@ function App() {
   const [isMusicEnabled, setIsMusicEnabled] = useState(true);
   const [showStory, setShowStory] = useState(false);
   const [showCredits, setShowCredits] = useState(false);
+  const [isGameOver, setIsGameOver] = useState(false);
 
   const [fadeOpacity, setFadeOpacity] = useState(0);
   const [isFading, setIsFading] = useState(false);
@@ -61,22 +64,40 @@ function App() {
     setShowStory(false);
     setInGame(true);
     setIsPaused(false);
+    setIsGameOver(false);
   };
 
   const togglePause = useCallback(() => {
+    if (isGameOver) return;
     setIsPaused(prev => !prev);
     setShowSettings(false);
-  }, []);
+  }, [isGameOver]);
 
   const backToMainMenu = () => {
     setInGame(false);
     setIsPaused(false);
     setShowSettings(false);
     setShowCredits(false);
+    setIsGameOver(false);
   };
 
   const handleShowCredits = () => {
     setShowCredits(true);
+  };
+  
+  const handlePlayerDied = () => {
+    setIsGameOver(true);
+    setIsPaused(true); // Juga pause game
+  };
+  
+  const handleRestart = () => {
+    // Mereset state game
+    setIsGameOver(false);
+    setInGame(false); // Kembali ke menu utama untuk memulai ulang
+    setTimeout(() => {
+        setInGame(true);
+        setIsPaused(false);
+    }, 100)
   };
 
   const openSettings = () => {
@@ -106,6 +127,10 @@ function App() {
   if (!inGame) {
     return <MainMenu onStartGame={handleStartFromMenu} onShowCredits={handleShowCredits} />;
   }
+  
+  if (isGameOver) {
+      return <GameOver onRestart={handleRestart} onMainMenu={backToMainMenu} />;
+  }
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -121,6 +146,7 @@ function App() {
                   isPaused={isPaused}
                   onTogglePause={togglePause}
                   isMusicEnabled={isMusicEnabled}
+                  onPlayerDied={handlePlayerDied}
                 />
               }
             />
