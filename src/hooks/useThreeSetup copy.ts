@@ -95,7 +95,7 @@ export const useThreeSetup = (containerRef: React.RefObject<HTMLDivElement>) => 
     scene.add(directionalLight);
 
     // Environment Setup
-    async function loadObject(modelName: string, xPos: number, yPos: number, zPos: number, ydeg: number, visible: boolean){
+    async function loadObject(modelName: string, xPos: number, yPos: number, zPos: number, ydeg: number, scale: number, visible: boolean){
       const modelPath = '../../models/' + modelName;
 
       try {
@@ -112,7 +112,7 @@ export const useThreeSetup = (containerRef: React.RefObject<HTMLDivElement>) => 
             }
           });
 
-          model.scale.set(1.5, 1.5, 1.5);
+          model.scale.set(scale, scale, scale);
           model.position.set(xPos, yPos, zPos);
           model.rotation.y = ydeg * Math.PI / 180;
           model.visible = visible;
@@ -126,9 +126,9 @@ export const useThreeSetup = (containerRef: React.RefObject<HTMLDivElement>) => 
       }
     }
 
-    loadObject('Map.glb', 0, 0, 5, -90, true);
-    loadObject('NavMesh.glb', 0, 0, 5, 90, false);
-    loadObject('freeport_space_station1.glb', 115, 0, 100, 0, true);
+    loadObject('Map.glb', 0, 0, 5, -90, 1.5, true);
+    loadObject('NavMesh.glb', 0, 0, 5, 90, 1.0, true);
+    loadObject('freeport_space_station1.glb', 115, 0, 100, 0, 1.2, true);
 
     // Create a visible debug box (optional)
     const boxGeometry = new THREE.BoxGeometry(5, 5, 5);
