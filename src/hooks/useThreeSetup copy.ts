@@ -94,7 +94,7 @@ export const useThreeSetup = (containerRef: React.RefObject<HTMLDivElement>) => 
     scene.add(directionalLight);
 
     // Environment Setup
-    async function loadObject(modelName: string, xPos: number, yPos: number, zPos: number, deg: number){
+    async function loadObject(modelName: string, xPos: number, yPos: number, zPos: number, ydeg: number){
       const modelPath = '../../models/' + modelName;
 
       try {
@@ -113,7 +113,7 @@ export const useThreeSetup = (containerRef: React.RefObject<HTMLDivElement>) => 
 
           model.scale.set(1.5, 1.5, 1.5);
           model.position.set(xPos, yPos, zPos);
-          model.rotation.y = deg * Math.PI / 180;
+          model.rotation.y = ydeg * Math.PI / 180;
 
           scene.add(model);
         });
@@ -125,6 +125,7 @@ export const useThreeSetup = (containerRef: React.RefObject<HTMLDivElement>) => 
     }
 
     loadObject('Map.glb', 0, 0, 5, -90);
+    loadObject('NavMesh.glb', 0, 0, 5, 90);
 
     setThreeObjects({ scene, camera, renderer, colliders, listener });
 
