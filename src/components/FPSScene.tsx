@@ -41,9 +41,14 @@ export const FPSScene = ({ isPaused, onTogglePause, isMusicEnabled }: { isPaused
 
     const inputManager = new InputManager(renderer.domElement);
     const playerController = new PlayerController(camera, inputManager, colliders);
+    const playerStatsInstance: IPlayer = (playerController as any).stats; 
+    if (!playerStatsInstance) {
+        console.error("PlayerStats instance is missing. Monster AI will be skipped.");
+        // Logika game dapat berlanjut, tetapi monster AI tidak akan berfungsi
+    }
     const effectsManager = new EffectsManager(scene);
     const weaponManager = new WeaponManager(camera, scene, effectsManager, inputManager);
-    const monsterSpawnManager = new MonsterSpawnManager(scene);
+    const monsterSpawnManager = new MonsterSpawnManager(scene, playerStatsInstance);
     const weaponSpawnManager = new WeaponSpawnManager(scene, weaponManager, playerController, effectsManager, listener);
     const healthItemSpawnManager = new HealthItemSpawnManager(scene, playerController, effectsManager, listener);
     

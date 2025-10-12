@@ -14,7 +14,10 @@ const AndromedaConfig: MonsterConfig = {
     modelPath: 'AndromedaMonster.fbx',
     scale: new THREE.Vector3(0.05, 0.05, 0.05),
     health: 100,
-    rotation: new THREE.Euler(0, Math.PI / 2, 0)
+    rotation: new THREE.Euler(0, Math.PI / 2, 0),
+    // Properti AI Patroli
+    speed: 1.0,           
+    patrolRadius: 10.0,  
 };
 
 export class MonsterSpawnManager {
@@ -22,9 +25,12 @@ export class MonsterSpawnManager {
     private scene: THREE.Scene;
     private spawnPoints: MonsterSpawnPoint[] = [];
     public activeMonsters: Monster[] = [];
-
-    constructor(scene: THREE.Scene) {
+    private player: IPlayer;
+    private colliders: any[];
+    constructor(scene: THREE.Scene, playerStats: IPlayer, colliders: any[]) {
         this.scene = scene;
+        this.player = playerStats;
+        this.colliders = colliders;
         this.initializeSpawnPoints();
     }
 
