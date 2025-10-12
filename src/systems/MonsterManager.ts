@@ -54,7 +54,6 @@ export class MonsterSpawnManager {
             const gltf = await loader.loadAsync('/models/NavMesh.glb');
 
             // Transformasi
-            gltf.scene.scale.set(1.5, 1.5, 1.5);
             gltf.scene.position.set(0, 0, 5);
             gltf.scene.rotation.y = Math.PI / 2;
             this.scene.add(gltf.scene);
