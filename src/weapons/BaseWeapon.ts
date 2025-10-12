@@ -103,8 +103,13 @@ export abstract class BaseWeapon implements IWeapon {
 
   protected canShoot(): boolean {
     const now = performance.now();
-    if (this.ammo <= 0) return false;
-    return now - this.lastShotTime >= this.config.shootCooldown;
+    if (now - this.lastShotTime >= this.config.shootCooldown){
+      if (this.ammo <= 0){
+        this.lastShotTime = performance.now();
+        return false;
+      }
+      return true;
+    }
   }
 
   protected onFire(): void {

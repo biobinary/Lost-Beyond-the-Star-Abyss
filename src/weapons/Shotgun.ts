@@ -25,6 +25,7 @@ export class Shotgun extends BaseWeapon {
     private spreadAngle = 0.35; // dalam radian
     private shootSound?: THREE.Audio;
     private reloadSound?: THREE.Audio;
+    private emptySound?: THREE.Audio;
     
     private loadSound() {
         const audioLoader = new THREE.AudioLoader();
@@ -40,6 +41,13 @@ export class Shotgun extends BaseWeapon {
             this.reloadSound!.setVolume(0.6);
             this.reloadSound!.setLoop(false);
         });
+                
+        this.emptySound = new THREE.Audio(this.listener);
+        audioLoader.load('/Audio/sound/empty-gun-shot.mp3', (buffer) => {
+            this.emptySound!.setBuffer(buffer);
+            this.emptySound!.setVolume(0.4);
+            this.emptySound!.setLoop(false);
+        });
     }
 
     constructor(private listener: THREE.AudioListener) {
@@ -48,10 +56,13 @@ export class Shotgun extends BaseWeapon {
     }
 
     public fire(camera: THREE.Camera, scene: THREE.Scene, effects: EffectsManager): void {
-        
-        if (!this.canShoot() || !this.model) 
+        if (!this.canShoot()){
+            if (this.emptySound && !this.emptySound.isPlaying && this.ammo <= 0) {
+                this.emptySound?.play();
+            }
             return;
-        
+        } else if(!this.model) return;
+
         super.onFire();
 
         if (this.shootSound && this.shootSound.isPlaying) {

@@ -23,6 +23,7 @@ export class Blaster extends BaseWeapon {
     private raycaster = new THREE.Raycaster();
     private shootSound?: THREE.Audio;
     private reloadSound?: THREE.Audio;
+    private emptySound?: THREE.Audio;
 
     constructor(private listener: THREE.AudioListener) {
         super(BlasterConfig, 30); // 30 peluru per magasin
@@ -44,10 +45,22 @@ export class Blaster extends BaseWeapon {
             this.reloadSound!.setVolume(0.8);
             this.reloadSound!.setLoop(false);
         });
+        
+        this.emptySound = new THREE.Audio(this.listener);
+        audioLoader.load('/Audio/sound/empty-gun-shot.mp3', (buffer) => {
+            this.emptySound!.setBuffer(buffer);
+            this.emptySound!.setVolume(0.4);
+            this.emptySound!.setLoop(false);
+        });
     }
 
     public fire(camera: THREE.Camera, scene: THREE.Scene, effects: EffectsManager): void {
-        if (!this.canShoot() || !this.model) return;
+        if (!this.canShoot()){
+            if (this.emptySound && !this.emptySound.isPlaying && this.ammo <= 0) {
+                this.emptySound?.play();
+            }
+            return;
+        } else if(!this.model) return;
         
         super.onFire(); // Panggil logika dasar: kurangi amunisi, set cooldown, mulai recoil
         
