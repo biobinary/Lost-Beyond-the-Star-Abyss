@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Progress } from "@/components/ui/progress"; // Import Progress component
+import { Progress } from "@/components/ui/progress";
 
 interface WeaponInfo {
   name: string;
@@ -28,15 +28,24 @@ export const HUD = () => {
   const [fps, setFps] = useState(60);
   const [crosshairSpread, setCrosshairSpread] = useState(4);
   const [showHealEffect, setShowHealEffect] = useState(false);
+  const [showDamageEffect, setShowDamageEffect] = useState(false);
+  const [previousHealth, setPreviousHealth] = useState(100);
 
   useEffect(() => {
-    
     const handleWeaponUpdate = (event: CustomEvent<WeaponInfo>) => {
       setWeaponInfo(event.detail);
     };
 
     const handlePlayerStatsUpdate = (event: CustomEvent<PlayerStats>) => {
-      setPlayerStats(event.detail);
+      const newStats = event.detail;
+      if (newStats.health < previousHealth && newStats.health > 0) {
+        setShowDamageEffect(true);
+        setTimeout(() => {
+          setShowDamageEffect(false);
+        }, 500);
+      }
+      setPlayerStats(newStats);
+      setPreviousHealth(newStats.health);
     };
 
     const handlePlayerMovementUpdate = (event: CustomEvent<PlayerMovementState>) => {
@@ -62,23 +71,22 @@ export const HUD = () => {
     window.addEventListener('playerMovementUpdate' as any, handlePlayerMovementUpdate);
     window.addEventListener('medkitPickup', handleMedkitPickup);
 
-    // FPS counter
     let frameCount = 0;
     let lastTime = performance.now();
-    
+
     const updateFPS = () => {
       frameCount++;
       const currentTime = performance.now();
-      
+
       if (currentTime >= lastTime + 1000) {
         setFps(Math.round((frameCount * 1000) / (currentTime - lastTime)));
         frameCount = 0;
         lastTime = currentTime;
       }
-      
+
       requestAnimationFrame(updateFPS);
     };
-    
+
     updateFPS();
 
     return () => {
@@ -87,7 +95,7 @@ export const HUD = () => {
       window.removeEventListener('playerMovementUpdate' as any, handlePlayerMovementUpdate);
       window.removeEventListener('medkitPickup', handleMedkitPickup);
     };
-  }, []);
+  }, [previousHealth]);
 
   return (
     <div className="fixed inset-0 pointer-events-none select-none font-mono">
@@ -100,7 +108,17 @@ export const HUD = () => {
           background: 'radial-gradient(circle, rgba(0, 255, 150, 0) 0%, rgba(0, 255, 150, 0.25) 80%, rgba(0, 255, 150, 0.4) 100%)',
         }}
       />
-      
+
+      {/* Damage Effect Overlay */}
+      <div
+        className={`absolute inset-0 transition-opacity duration-500 ${
+          showDamageEffect ? 'opacity-100' : 'opacity-0'
+        }`}
+        style={{
+          background: 'radial-gradient(circle, rgba(255, 0, 0, 0) 0%, rgba(255, 0, 0, 0.25) 80%, rgba(255, 0, 0, 0.4) 100%)',
+        }}
+      />
+
       {/* Dynamic Crosshair */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
         <div className="relative w-1 h-1">
@@ -112,10 +130,19 @@ export const HUD = () => {
         </div>
       </div>
 
+      {/* Objective - Top Left */}
+      <div className="absolute top-6 left-6">
+        <div
+          className="bg-black/80 backdrop-blur-sm px-4 py-2 border-2 border-cyan-800/50"
+          style={{ clipPath: 'polygon(0% 0%, 95% 0%, 100% 20%, 100% 100%, 0% 100%)' }}
+        >
+          <span className="text-sm font-bold text-yellow-400 tracking-widest">OBJECTIVE: Get to the escape pod!</span>
+        </div>
+      </div>
 
       {/* Player Stats - Bottom Left */}
       <div className="absolute bottom-6 left-6 space-y-4">
-        <div 
+        <div
           className="bg-black/80 backdrop-blur-sm p-4 border-2 border-cyan-800/50 w-56"
           style={{ clipPath: 'polygon(0% 0%, 100% 0%, 100% 85%, 95% 100%, 0% 100%)' }}
         >
@@ -133,7 +160,7 @@ export const HUD = () => {
       {/* Weapon Info - Bottom Right */}
       {weaponInfo && (
         <div className="absolute bottom-6 right-6">
-          <div 
+          <div
             className="bg-black/80 backdrop-blur-sm px-6 py-4 border-2 border-cyan-800/50 shadow-lg"
             style={{ clipPath: 'polygon(0% 0%, 100% 0%, 100% 100%, 5% 100%, 0% 85%)' }}
           >
@@ -142,15 +169,16 @@ export const HUD = () => {
                 {weaponInfo.name}
               </span>
             </div>
-            
             <div className="flex items-baseline justify-end gap-2">
-              <span className={`text-4xl font-bold tabular-nums ${
-                weaponInfo.ammo === 0 
-                  ? 'text-red-500' 
-                  : weaponInfo.ammo <= weaponInfo.maxAmmo * 0.3 
-                  ? 'text-yellow-500' 
-                  : 'text-foreground'
-              }`}>
+              <span
+                className={`text-4xl font-bold tabular-nums ${
+                  weaponInfo.ammo === 0
+                    ? 'text-red-500'
+                    : weaponInfo.ammo <= weaponInfo.maxAmmo * 0.3
+                    ? 'text-yellow-500'
+                    : 'text-foreground'
+                }`}
+              >
                 {weaponInfo.ammo}
               </span>
               <span className="text-xl text-foreground/50 font-medium">/</span>
@@ -158,19 +186,21 @@ export const HUD = () => {
                 {weaponInfo.reserveAmmo}
               </span>
             </div>
-            
             <div className="mt-2 flex justify-end gap-1">
               {[...Array(weaponInfo.maxAmmo)].map((_, i) => (
                 <div key={i} className={`w-1 h-3 rounded-sm ${i < weaponInfo.ammo ? 'bg-primary' : 'bg-muted/30'}`} />
               ))}
             </div>
-
             <div className="mt-3 pt-3 border-t border-primary/20">
               <div className="flex items-center justify-end gap-2">
                 <span className="text-xs text-foreground/50">WEAPON</span>
                 <div className="flex gap-1">
                   {[...Array(weaponInfo.totalWeapons)].map((_, i) => (
-                    <div key={i} className={`w-2 h-2 ${i === weaponInfo.weaponIndex ? 'bg-primary shadow-[0_0_8px_hsl(var(--primary))]' : 'bg-muted/40'}`} style={{ clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)' }} />
+                    <div
+                      key={i}
+                      className={`w-2 h-2 ${i === weaponInfo.weaponIndex ? 'bg-primary shadow-[0_0_8px_hsl(var(--primary))]' : 'bg-muted/40'}`}
+                      style={{ clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)' }}
+                    />
                   ))}
                 </div>
                 <span className="text-xs text-foreground/70 tabular-nums">
@@ -184,13 +214,15 @@ export const HUD = () => {
 
       {/* FPS Counter - Top Right */}
       <div className="absolute top-6 right-6">
-        <div 
+        <div
           className="bg-black/80 backdrop-blur-sm px-4 py-2 border-2 border-cyan-800/50"
           style={{ clipPath: 'polygon(0% 20%, 5% 0%, 100% 0%, 100% 100%, 0% 100%)' }}
         >
-          <span className={`text-sm ${
-            fps >= 55 ? 'text-green-500' : fps >= 30 ? 'text-yellow-500' : 'text-red-500'
-          }`}>
+          <span
+            className={`text-sm ${
+              fps >= 55 ? 'text-green-500' : fps >= 30 ? 'text-yellow-500' : 'text-red-500'
+            }`}
+          >
             FPS: {fps}
           </span>
         </div>
@@ -199,7 +231,7 @@ export const HUD = () => {
       {/* Low Ammo Warning */}
       {weaponInfo && weaponInfo.ammo === 0 && (
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 mt-20">
-          <div 
+          <div
             className="bg-red-900/40 backdrop-blur-sm px-6 py-3 border-2 border-red-500/80 animate-pulse"
             style={{ clipPath: 'polygon(0% 0%, 100% 0%, 100% 80%, 95% 100%, 5% 100%, 0% 80%)' }}
           >
