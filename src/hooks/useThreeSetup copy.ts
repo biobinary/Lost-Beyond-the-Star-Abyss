@@ -135,6 +135,7 @@ export const useThreeSetup = (containerRef: React.RefObject<HTMLDivElement>) => 
     const boxMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true });
     const detectionBox = new THREE.Mesh(boxGeometry, boxMaterial);
     detectionBox.position.set(6, 2.5, -44.5);
+    detectionBox.visible = false;
     scene.add(detectionBox);
 
     // Create a bounding box for collision detection
