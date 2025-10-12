@@ -10,7 +10,24 @@ import MainMenu from "./components/MainMenu";
 import PauseMenu from "./components/PauseMenu";
 import SettingsMenu from "./components/SettingsMenu";
 import StoryTutorial from "./components/StoryTutorial";
-import CreditsMenu from "./components/CreditsMenu"; // Impor komponen CreditsMenu
+import CreditsMenu from "./components/CreditsMenu";
+import {PodWindowOverlay} from "./components/PodWindowOverlay";
+
+function FadeOverlay({ opacity }: { opacity: number }) {
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        backgroundColor: "black",
+        opacity,
+        transition: "opacity 1s ease-in-out",
+        pointerEvents: "none", // don't block input
+        zIndex: 10000, // always on top
+      }}
+    />
+  );
+}
 
 const queryClient = new QueryClient();
 
@@ -21,6 +38,20 @@ function App() {
   const [isMusicEnabled, setIsMusicEnabled] = useState(true);
   const [showStory, setShowStory] = useState(false);
   const [showCredits, setShowCredits] = useState(false);
+
+  const [fadeOpacity, setFadeOpacity] = useState(0);
+  const [isFading, setIsFading] = useState(false);
+
+  useEffect(() => {
+    const handleFadeEvent = (e: CustomEvent<{ toBlack: boolean; duration?: number }>) => {
+      const { toBlack, duration = 1000 } = e.detail;
+      setIsFading(true);
+      setFadeOpacity(toBlack ? 1 : 0);
+      setTimeout(() => setIsFading(false), duration);
+    };
+    window.addEventListener("fadeScreen", handleFadeEvent as EventListener);
+    return () => window.removeEventListener("fadeScreen", handleFadeEvent as EventListener);
+  }, []);
 
   const handleStartFromMenu = () => {
     setShowStory(true);
@@ -34,7 +65,7 @@ function App() {
 
   const togglePause = useCallback(() => {
     setIsPaused(prev => !prev);
-    setShowSettings(false); // Close settings when unpausing
+    setShowSettings(false);
   }, []);
 
   const backToMainMenu = () => {
@@ -43,7 +74,7 @@ function App() {
     setShowSettings(false);
     setShowCredits(false);
   };
-  
+
   const handleShowCredits = () => {
     setShowCredits(true);
   };
@@ -59,7 +90,6 @@ function App() {
   const toggleMusic = () => {
     setIsMusicEnabled(prev => {
       const newValue = !prev;
-      // Dispatch custom event to control music
       window.dispatchEvent(new CustomEvent('toggleMusic', { detail: { enabled: newValue } }));
       return newValue;
     });
@@ -84,9 +114,19 @@ function App() {
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Index isPaused={isPaused} onTogglePause={togglePause} isMusicEnabled={isMusicEnabled} />} />
+            <Route
+              path="/"
+              element={
+                <Index
+                  isPaused={isPaused}
+                  onTogglePause={togglePause}
+                  isMusicEnabled={isMusicEnabled}
+                />
+              }
+            />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <PodWindowOverlay />
           {isPaused && !showSettings && (
             <PauseMenu
               onResume={togglePause}
@@ -101,6 +141,7 @@ function App() {
               onToggleMusic={toggleMusic}
             />
           )}
+          <FadeOverlay opacity={fadeOpacity} />
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>

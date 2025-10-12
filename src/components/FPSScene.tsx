@@ -47,9 +47,16 @@ export const FPSScene = ({ isPaused, onTogglePause, isMusicEnabled }: { isPaused
     const weaponSpawnManager = new WeaponSpawnManager(scene, weaponManager, playerController, effectsManager, listener);
     const healthItemSpawnManager = new HealthItemSpawnManager(scene, playerController, effectsManager, listener);
     
-    let cutsceneStarted = false;
     const clock = new THREE.Clock();
     let animationFrameId: number;
+
+    let cutsceneStarted = false;
+    let cutsceneProgress = 0;
+
+    let startPos = new THREE.Vector3();
+    let endPos = new THREE.Vector3();
+    let startRot = new THREE.Euler();
+    let endRot = new THREE.Euler();
 
     const animate = () => {
 
@@ -74,24 +81,65 @@ export const FPSScene = ({ isPaused, onTogglePause, isMusicEnabled }: { isPaused
       const delta = clock.getDelta();
       const elapsedTime = clock.getElapsedTime();
 
-      playerController.update(delta, elapsedTime);
-      weaponManager.update(elapsedTime, delta);
-      weaponSpawnManager.update(elapsedTime, delta);
-      healthItemSpawnManager.update(elapsedTime, delta);
-      monsterSpawnManager.update(delta)
+      if(!cutsceneStarted){
+        playerController.update(delta, elapsedTime);
+        weaponManager.update(elapsedTime, delta);
+        weaponSpawnManager.update(elapsedTime, delta);
+        healthItemSpawnManager.update(elapsedTime, delta);
+        monsterSpawnManager.update(delta)
+      } else {
+        cutsceneProgress += delta * 0.075; // adjust speed
+        if (cutsceneProgress >= 1) {
+          cutsceneProgress = 1;
+        }
+
+        // Interpolate position
+        camera.position.lerpVectors(startPos, endPos, cutsceneProgress);
+
+        // Interpolate rotation
+        const eased = THREE.MathUtils.smoothstep(cutsceneProgress, 0, 1);
+        camera.rotation.z = THREE.MathUtils.lerp(startRot.z, endRot.z, eased);
+      }
       
       if (detectionArea.containsPoint(camera.position) && !cutsceneStarted) {
         startCutscene();
       }
-      renderer.render(scene, camera);
 
+      renderer.render(scene, camera);
     };
 
     animate();
 
     const startCutscene = () => {
-      cutsceneStarted = true;
-      console.log("Cutscene")
+      startRot.copy(camera.rotation);
+
+      window.dispatchEvent(new CustomEvent("fadeScreen", { detail: { toBlack: true, duration: 1000 } }));
+
+      // Wait a bit, then move camera or start cutscene
+      setTimeout(() => {
+        
+        camera.position.set(0, 5, 60);
+        startPos.copy(camera.position);
+
+        camera.rotation.y = 180 * Math.PI / 180
+
+        window.dispatchEvent(new CustomEvent("showPodWindow", { detail: { show: true } }));
+        cutsceneStarted = true;
+
+        const backward = new THREE.Vector3(0, 0, 35).applyQuaternion(camera.quaternion);
+        endPos.copy(startPos).add(backward);
+        
+        // Rotate very slightly upward and to the side
+        endRot.set(
+          startRot.x,
+          startRot.y,
+          startRot.z - 0.25
+        );
+
+        // Fade back
+        window.dispatchEvent(new CustomEvent("fadeScreen", { detail: { toBlack: false, duration: 1000 } }));
+      }, 1500);
+      
     }
 
     return () => {

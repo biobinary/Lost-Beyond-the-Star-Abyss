@@ -128,12 +128,13 @@ export const useThreeSetup = (containerRef: React.RefObject<HTMLDivElement>) => 
 
     loadObject('Map.glb', 0, 0, 5, -90, true);
     loadObject('NavMesh.glb', 0, 0, 5, 90, false);
+    loadObject('freeport_space_station1.glb', 115, 0, 100, 0, true);
 
     // Create a visible debug box (optional)
     const boxGeometry = new THREE.BoxGeometry(5, 5, 5);
     const boxMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true });
     const detectionBox = new THREE.Mesh(boxGeometry, boxMaterial);
-    detectionBox.position.set(0, 2.5, -10);
+    detectionBox.position.set(6, 2.5, -44.5);
     scene.add(detectionBox);
 
     // Create a bounding box for collision detection
