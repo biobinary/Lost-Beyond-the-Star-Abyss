@@ -96,6 +96,9 @@ export class Monster {
             this.model = fbx;
             this.setupModel(position);
             this.setupAnimations(fbx);
+            this.model.traverse(obj => {
+                obj.userData.entity = this;
+            });
             
             this.scene.add(this.model);
             this.setNewPatrolTarget();
@@ -201,7 +204,7 @@ export class Monster {
      */
     private handleChasingState(deltaTime: number, playerPosition: THREE.Vector3, distanceToPlayer: number): void {
         
-        const lostPlayer = distanceToPlayer > this.config.detectionRadius * 1.5 || 
+        const lostPlayer = distanceToPlayer > this.config.detectionRadius * 3 || 
                           !this.canSeePlayer(playerPosition);
 
         if (lostPlayer) {
@@ -313,10 +316,10 @@ export class Monster {
         if (newPath && newPath.length > 0) {
             this.path = newPath;
             this.currentPathTarget = targetPosition.clone();
-            this.pathfindingHelper.reset();
-            this.pathfindingHelper.setPlayerPosition(this.model.position);
-            this.pathfindingHelper.setTargetPosition(targetPosition);
-            this.pathfindingHelper.setPath(this.path);
+            // this.pathfindingHelper.reset();
+            // this.pathfindingHelper.setPlayerPosition(this.model.position);
+            // this.pathfindingHelper.setTargetPosition(targetPosition);
+            // this.pathfindingHelper.setPath(this.path);
         } else {
             this.clearPath();
         }
@@ -366,7 +369,7 @@ export class Monster {
     private clearPath(): void {
         this.path = [];
         this.currentPathTarget = null;
-        this.pathfindingHelper.setPath([]); 
+        // this.pathfindingHelper.setPath([]);
     }
 
     // ==================== Patrol Logic ====================

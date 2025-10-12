@@ -11,6 +11,7 @@ import { EffectsManager } from "../systems/EffectsManager";
 import { WeaponSpawnManager } from "@/systems/WeaponSpawnManager";
 import { HealthItemSpawnManager } from "@/systems/HealthItemSpawnManager";
 import { MonsterSpawnManager } from "@/systems/MonsterManager";
+import { HUD } from "./HUD";
 
 export const FPSScene = ({ isPaused, onTogglePause, isMusicEnabled, onPlayerDied }: { isPaused: boolean; onTogglePause: () => void; isMusicEnabled: boolean; onPlayerDied: () => void; }) => {
   
@@ -123,6 +124,7 @@ export const FPSScene = ({ isPaused, onTogglePause, isMusicEnabled, onPlayerDied
 
       // Wait a bit, then move camera or start cutscene
       setTimeout(() => {
+        weaponManager.disposeAll();
         
         camera.position.set(0, 5, 60);
         startPos.copy(camera.position);

@@ -56,6 +56,7 @@ export class MonsterSpawnManager {
 
             gltf.scene.position.set(0, 0, 5);
             gltf.scene.rotation.y = Math.PI / 2;
+            gltf.scene.visible = false; 
             this.scene.add(gltf.scene);
 
             let navmeshFound = false;
@@ -102,9 +103,9 @@ export class MonsterSpawnManager {
     private async initializeSpawnPoints() {
     
         const points: { position: THREE.Vector3, rotationY?: number }[] = [
-            { position: new THREE.Vector3(0, 0, 0), rotationY: 0 },
-            // { position: new THREE.Vector3(10, 0, -15), rotationY: -90 },
-            // { position: new THREE.Vector3(-15, 0, -25) },
+            { position: new THREE.Vector3(0, 0, -5), rotationY: 0 },
+            { position: new THREE.Vector3(10, 0, -15), rotationY: -90 },
+            { position: new THREE.Vector3(-15, 0, -25) },
         ];
 
         points.forEach(point => {
@@ -130,6 +131,7 @@ export class MonsterSpawnManager {
         for (const spawnPoint of this.spawnPoints) {
             if (!spawnPoint.instance) {
                 const monster = new Monster(this.scene, spawnPoint.config, this.colliders, this.pathfinding, this.ZONE);
+
                 await monster.load(spawnPoint.position);
                 
                 spawnPoint.instance = monster;

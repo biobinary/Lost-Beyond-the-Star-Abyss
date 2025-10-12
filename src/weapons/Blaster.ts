@@ -4,6 +4,7 @@ import { EffectsManager } from "../systems/EffectsManager";
 import { BaseWeapon } from "./BaseWeapon";
 import { WeaponConfig } from "./IWeapon";
 import { WeaponManager } from "@/systems/WeaponManager";
+import { Monster } from "../entities/Monster"
 
 // Definisikan konfigurasi spesifik untuk Blaster
 const BlasterConfig: WeaponConfig = {
@@ -28,6 +29,7 @@ export class Blaster extends BaseWeapon {
     constructor(private listener: THREE.AudioListener) {
         super(BlasterConfig, 30); // 30 peluru per magasin
         this.loadSound();
+        this.damage = 20;
     }
     
     private loadSound() {
@@ -119,13 +121,15 @@ export class Blaster extends BaseWeapon {
                 parent = parent.parent;
             }
 
-            if (belongsToWeapon) 
+            if (belongsToWeapon || inter.distance < 0.1) 
                 continue;
 
-            // PERBAIKAN: Pastikan jarak hit masuk akal
-            if (inter.distance < 0.1) 
-                continue; // Skip hits yang terlalu dekat
+            const hitEntity = inter.object.userData.entity;
 
+            if (hitEntity && hitEntity instanceof Monster) {
+                hitEntity.takeDamage(this.damage);
+            }
+            
             // Valid hit
             bulletEnd.copy(inter.point);
             

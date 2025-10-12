@@ -4,6 +4,7 @@ import { EffectsManager } from "../systems/EffectsManager";
 import { BaseWeapon } from "./BaseWeapon";
 import { WeaponConfig } from "./IWeapon";
 import { WeaponManager } from "@/systems/WeaponManager";
+import { Monster } from "../entities/Monster";
 
 const ShotgunConfig: WeaponConfig = {
     name: "Shotgun",
@@ -53,6 +54,7 @@ export class Shotgun extends BaseWeapon {
     constructor(private listener: THREE.AudioListener) {
         super(ShotgunConfig, 8); // 8 peluru
         this.loadSound();
+        this.damage = 5;
     }
 
     public fire(camera: THREE.Camera, scene: THREE.Scene, effects: EffectsManager): void {
@@ -91,7 +93,8 @@ export class Shotgun extends BaseWeapon {
                 (Math.random() - 0.5) * this.spreadAngle,
                 (Math.random() - 0.5) * this.spreadAngle
             );
-
+            
+            
             const pelletDirection = baseDirection.clone().add(spread).normalize();
 
             this.raycaster.set(rayOrigin, pelletDirection);
@@ -114,13 +117,15 @@ export class Shotgun extends BaseWeapon {
                     parent = parent.parent;
                 }
             
-                if (belongsToWeapon) 
+                if (belongsToWeapon || inter.distance < 0.1) 
                     continue;
+
+                const hitEntity = inter.object.userData.entity;
+
+                if (hitEntity && hitEntity instanceof Monster) {
+                    hitEntity.takeDamage(this.damage);
+                }
             
-                // PERBAIKAN: Pastikan jarak hit masuk akal
-                if (inter.distance < 0.1) 
-                    continue; // Skip hits yang terlalu dekat
-    
                 // Valid hit
                 bulletEnd.copy(inter.point);
                 

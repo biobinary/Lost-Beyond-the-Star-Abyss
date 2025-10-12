@@ -12,6 +12,7 @@ export abstract class BaseWeapon implements IWeapon {
   public ammo: number;
   public maxAmmo: number;
   public reserveAmmo: number = 0;
+  public damage: number;
 
   protected lastShotTime = 0;
   private muzzleLight: THREE.PointLight;
