@@ -13,7 +13,7 @@ interface MonsterSpawnPoint {
 // Konfigurasi default untuk monster
 const AndromedaConfig: MonsterConfig = {
     modelPath: 'AndromedaMonster.fbx',
-    scale: new THREE.Vector3(0.05, 0.05, 0.05),
+    scale: new THREE.Vector3(0.03, 0.03, 0.03),
     health: 100,
     rotation: new THREE.Euler(0, Math.PI / 2, 0),
     speed: 1.0,           

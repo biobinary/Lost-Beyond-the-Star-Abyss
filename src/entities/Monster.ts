@@ -2,79 +2,75 @@ import * as THREE from 'three';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
 import { toast } from "sonner";
 
-// Konfigurasi untuk setiap tipe monster
 export interface MonsterConfig {
     modelPath: string;
     scale: THREE.Vector3;
     health: number;
-    rotation: THREE.Euler; 
-    
-    // 🛠️ Properti Patroli Baru
+    rotation: THREE.Euler;
     speed: number;
-    patrolRadius: number; // Radius dari posisi spawn
+    patrolRadius: number;
 }
+
 export enum MonsterState {
-    PATROL = 'PATROL', // Hanya fokus pada state ini dulu
-    IDLE = 'IDLE',
+    PATROL = 'PATROL',
     DEAD = 'DEAD',
 }
 
 export class Monster {
-
     public model: THREE.Group | null = null;
     public health: number;
     public config: MonsterConfig;
     private mixer: THREE.AnimationMixer | null = null;
     private scene: THREE.Scene;
     private raycaster = new THREE.Raycaster();
-    private colliders: any[] = [];
+    private colliders: any[];
 
-        // 🛠️ Properti AI/Patroli
     public state: MonsterState = MonsterState.PATROL;
     private initialPosition: THREE.Vector3 = new THREE.Vector3();
     private currentPatrolTarget: THREE.Vector3 = new THREE.Vector3();
-    
+
+    private avoidDirection: THREE.Vector3 | null = null;
+    private stuckTimer: number = 0;
+
     private defaultRotationY: number;
+
     constructor(scene: THREE.Scene, config: MonsterConfig, colliders: any[], rotationY: number = 0) {
         this.scene = scene;
         this.config = config;
-        this.health = this.config.health;
+        this.health = config.health;
         this.colliders = colliders;
         this.defaultRotationY = rotationY;
-        // Kita tidak bisa memanggil setNewPatrolTarget di sini karena initialPosition belum diset
-     }
+    }
 
-     private setNewPatrolTarget() {
+    // 🧭 Buat target acak di sekitar posisi awal
+    private setNewPatrolTarget() {
         if (!this.model) return;
         const angle = Math.random() * Math.PI * 2;
         const radius = Math.random() * this.config.patrolRadius;
-        
-        // Buat titik acak di sekitar initialPosition
+
         this.currentPatrolTarget.set(
             this.initialPosition.x + Math.cos(angle) * radius,
-            this.initialPosition.y, // Pertahankan ketinggian awal
+            this.initialPosition.y,
             this.initialPosition.z + Math.sin(angle) * radius
         );
-        console.log(`Monster set new patrol target at: ${this.currentPatrolTarget.x.toFixed(1)}, ${this.currentPatrolTarget.z.toFixed(1)}`);
-    }
-    public async load(position: THREE.Vector3) {
 
-        if (this.model) return; // Hindari double load
-         // 🛠️ Simpan posisi spawn SEBELUM loading
-        this.initialPosition.copy(position); 
+        console.log(`🎯 New patrol target: (${this.currentPatrolTarget.x.toFixed(1)}, ${this.currentPatrolTarget.z.toFixed(1)})`);
+    }
+
+    // 📦 Load model monster
+    public async load(position: THREE.Vector3) {
+        if (this.model) return;
 
         const fbxLoader = new FBXLoader();
         try {
-
             const fbx = await fbxLoader.loadAsync(this.config.modelPath);
             this.model = fbx;
 
             this.model.position.copy(position);
             this.model.scale.copy(this.config.scale);
             this.model.rotation.copy(this.config.rotation);
+            this.model.rotation.y = this.defaultRotationY;
 
-            this.model.rotation.y = this.defaultRotationY; 
-            
             this.model.traverse((child) => {
                 if (child instanceof THREE.Mesh) {
                     child.castShadow = true;
@@ -82,79 +78,104 @@ export class Monster {
                 }
             });
 
+            // 🔹 Animasi
             if (fbx.animations && fbx.animations.length > 0) {
-                this.mixer = new THREE.AnimationMixer(fbx);
+                const root = fbx.children[0] || fbx;
+                this.mixer = new THREE.AnimationMixer(root);
                 const action = this.mixer.clipAction(fbx.animations[0]);
                 action.play();
+                console.log("🎬 Monster animation playing:", fbx.animations[0].name);
+            } else {
+                console.warn("⚠️ Monster has no animations:", this.config.modelPath);
             }
 
             this.scene.add(this.model);
+
+            // Set posisi awal & target patrol
+            this.initialPosition.copy(this.model.position);
             this.setNewPatrolTarget();
 
         } catch (error) {
-            console.error(`FATAL ERROR: Gagal memuat model monster FBX:`, error);
-            toast.error(`Gagal memuat model untuk monster: ${this.config.modelPath}`);
+            console.error("❌ Gagal memuat model monster:", error);
+            toast.error(`Gagal memuat monster: ${this.config.modelPath}`);
         }
-
     }
 
+    // 🔄 Update tiap frame
     public update(deltaTime: number) {
         if (!this.model || this.state === MonsterState.DEAD) return;
-        if (this.mixer) {
-            this.mixer.update(deltaTime);
-        }
+        if (this.mixer) this.mixer.update(deltaTime);
 
-        // Logika sederhana: Hanya Patroli
         if (this.state === MonsterState.PATROL) {
             this.handlePatrol(deltaTime);
         }
     }
-    // --- Metode Gerakan Patroli ---
 
+    // 🚶‍♂️ Logika patroli
     private handlePatrol(deltaTime: number) {
-        const targetPoint = this.currentPatrolTarget;
-        const distanceToTarget = this.model!.position.distanceTo(this.currentPatrolTarget);
-        
-        // Cek jika target tercapai atau terlalu jauh dari pusat patroli
-        if (distanceToTarget < 0.5 || this.model!.position.distanceTo(this.initialPosition) > this.config.patrolRadius * 1.5) { 
-            this.setNewPatrolTarget(); 
-        } else {
-            this.moveTowards(targetPoint, this.config.speed, deltaTime); 
+        if (!this.model) return;
+
+        const distToTarget = this.model.position.distanceTo(this.currentPatrolTarget);
+        if (distToTarget < 0.5 || this.currentPatrolTarget.lengthSq() === 0) {
+            this.setNewPatrolTarget();
+            return;
         }
+
+        this.moveTowards(this.currentPatrolTarget, this.config.speed, deltaTime);
     }
 
-   private moveTowards(target: THREE.Vector3, speed: number, deltaTime: number) {
+    // 🧠 Gerakan ke target + deteksi tabrakan
+private moveTowards(target: THREE.Vector3, speed: number, deltaTime: number) {
     if (!this.model) return;
 
-    // 🛠️ PERBAIKAN: Gunakan operator null-check atau pastikan target valid.
-    if (!target || !(target instanceof THREE.Vector3)) {
-        console.error("Move target is invalid!", target);
-        return; // Hentikan gerakan jika target tidak valid
+    const currentPos = this.model.position.clone();
+    const dir = target.clone().sub(currentPos);
+    dir.y = 0;
+    if (dir.lengthSq() === 0) return;
+    dir.normalize();
+
+    // Titik asal raycast: sedikit di depan dada monster (bukan di kaki)
+    const rayOrigin = currentPos.clone().add(new THREE.Vector3(0, 1.0, 0));
+    this.raycaster.set(rayOrigin, dir);
+    const hits = this.raycaster.intersectObjects(this.colliders, true);
+
+    const isBlocked = hits.length > 0 && hits[0].distance < 1.0; // jarak aman ±1m
+    if (isBlocked) {
+        // Monster berhenti dan ganti arah acak
+        const angle = (Math.random() - 0.5) * Math.PI; // rotasi acak 180°
+        const newDir = dir.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), angle);
+        this.model.position.addScaledVector(newDir, 0.05); // dorong dikit keluar
+        this.setNewPatrolTarget(); // cari target baru
+        return;
     }
 
-    const direction = target.clone().sub(this.model.position);
-    direction.y = 0; 
+    // Cek langkah ke depan aman (tidak menembus collider)
+    const nextPos = currentPos.clone().addScaledVector(dir, speed * deltaTime);
 
-    // PERIKSA: Jika panjangnya nol (sudah di target), jangan lakukan normalize
-    if (direction.lengthSq() === 0) return; 
+    // Raycast ke bawah dari posisi depan untuk memastikan masih di permukaan lantai
+    const downRay = new THREE.Raycaster(
+        nextPos.clone().add(new THREE.Vector3(0, 2, 0)),
+        new THREE.Vector3(0, -1, 0)
+    );
+    const groundHits = downRay.intersectObjects(this.colliders, true);
+    if (groundHits.length === 0) {
+        // Jika tidak ada tanah, jangan maju
+        return;
+    }
 
-    direction.normalize(); // Baris yang mengakses 'length'
-    
-    // Rotasi
-    this.faceTowards(target); 
-
-    // Gerak maju
-    this.model.position.addScaledVector(direction, speed * deltaTime);
-    
-    // Kunci posisi Y
-    this.model.position.y = this.initialPosition.y; 
+    // Aman -> maju
+    this.model.position.copy(nextPos);
+    this.model.position.y = this.initialPosition.y;
+    this.faceTowards(target);
 }
-    
+
+
+
     private faceTowards(target: THREE.Vector3) {
         if (!this.model) return;
-        const direction = target.clone().sub(this.model.position);
-        const angle = Math.atan2(direction.x, direction.z);
-        this.model.rotation.y = angle + Math.PI / 2; 
+        const dir = target.clone().sub(this.model.position);
+        const angle = Math.atan2(dir.x, dir.z);
+        this.model.rotation.y = angle + Math.PI / 2;
     }
 
     public takeDamage(amount: number): boolean {

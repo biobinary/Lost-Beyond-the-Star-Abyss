@@ -65,7 +65,9 @@ export const FPSScene = ({ isPaused, onTogglePause, isMusicEnabled }: { isPaused
       }
 
       if (!inputManager.isPointerLocked) {
-        renderer.domElement.requestPointerLock();
+        if (renderer.domElement && document.contains(renderer.domElement)) {
+          renderer.domElement.requestPointerLock();
+        }
       }
 
       const delta = clock.getDelta();
