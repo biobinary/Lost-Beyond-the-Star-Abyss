@@ -258,13 +258,34 @@ export class Monster {
      */
     private shouldRecalculatePath(targetPosition: THREE.Vector3): boolean {
         
-        const targetChanged = !this.currentPathTarget || 
-                            this.currentPathTarget.distanceTo(targetPosition) > 0.5;
+        // 1. Always recalculate if there is no current path.
+        if (this.path.length === 0) {
+            return true;
+        }
+
+        // 2. In CHASING state, only recalculate if the current path target is
+        //    significantly far from the player, indicating the player has moved
+        //    substantially since the last calculation (prevents recalculating every frame).
+        if (this.state === MonsterState.CHASING) {
+            // Check if the current path target (which is the player's last position when path was calculated)
+            // is far from the player's *current* position. Use a larger threshold (e.g., 2.0-5.0 units).
+            const RECALCULATION_THRESHOLD = 3.0; 
+            if (this.currentPathTarget && this.currentPathTarget.distanceTo(targetPosition) > RECALCULATION_THRESHOLD) {
+                return true;
+            }
+        }
         
-        const hasNoPath = this.path.length === 0;
+        // 3. In PATROL state, recalculate if the target has changed more than a small tolerance.
+        if (this.state === MonsterState.PATROL) {
+            const TARGET_CHANGE_TOLERANCE = 0.5;
+            if (this.currentPathTarget && this.currentPathTarget.distanceTo(targetPosition) > TARGET_CHANGE_TOLERANCE) {
+                 // This should only happen if the patrol target was just set.
+                 return true;
+            }
+        }
 
-        return targetChanged || hasNoPath;
-
+        // Otherwise, continue following the current path.
+        return false;
     }
 
     /**
@@ -306,17 +327,37 @@ export class Monster {
      * Follows the currently calculated path
      */
     private followCurrentPath(speed: number, deltaTime: number): void {
-
         if (!this.model || this.path.length === 0) return;
 
         const nextWaypoint = this.path[0];
-        this.moveTowards(nextWaypoint, speed, deltaTime);
+        const position = this.model.position;
 
-        // Reached waypoint, move to next
-        if (this.model.position.distanceTo(nextWaypoint) < 0.5) {
+        const WAYPOINT_TOLERANCE = 0.25; 
+        const distanceToWaypoint = position.distanceTo(nextWaypoint);
+
+        if (distanceToWaypoint < WAYPOINT_TOLERANCE) {
             this.path.shift();
-        }
+            
+            if (this.path.length === 0) {
+                this.clearPath();
+            }
+            
+            // Crucial: Stop processing movement for this frame after path shift
+            return; 
+        } 
+        
+        // Move towards the current waypoint
+        const direction = nextWaypoint.clone().sub(position);
+        const distance = direction.length();
+        
+        this.faceTowards(nextWaypoint);
 
+        const moveDistance = Math.min(speed * deltaTime, distance);
+        
+        if (distance > 0.001) {
+            direction.normalize();
+            this.model.position.addScaledVector(direction, moveDistance);
+        }
     }
 
     /**
@@ -325,7 +366,7 @@ export class Monster {
     private clearPath(): void {
         this.path = [];
         this.currentPathTarget = null;
-        this.pathfindingHelper.setPath(null);
+        this.pathfindingHelper.setPath([]); 
     }
 
     // ==================== Patrol Logic ====================
@@ -339,7 +380,7 @@ export class Monster {
 
         const groupID = this.pathfinding.getGroup(this.zone, this.model.position);
         if (groupID === null) {
-            console.warn('Monster outside navmesh group');
+            console.log('Monster outside navmesh group');
             return;
         }
 
@@ -364,25 +405,33 @@ export class Monster {
         if (!this.model) return [];
 
         const candidates: THREE.Vector3[] = [];
-        const attemptCount = 50;
-        const minDistance = 3.0;
+        const attemptCount = 10; // Reduced attempts, less expensive
+        const minDistance = 3.0; // Ensure movement before pathfinding
 
         for (let i = 0; i < attemptCount; i++) {
-            const angle = (Math.PI * 2 * i) / attemptCount + Math.random() * 0.5;
-            const distance = this.config.patrolRadius * (0.3 + Math.random() * 0.7);
+            // Generate a truly random point within a circle around initialPosition
+            const radius = this.config.patrolRadius * Math.sqrt(Math.random());
+            const angle = Math.random() * 2 * Math.PI;
 
-            const candidate = this.initialPosition.clone().add(
-                new THREE.Vector3(
-                    Math.cos(angle) * distance,
-                    0,
-                    Math.sin(angle) * distance
-                )
+            const randomOffset = new THREE.Vector3(
+                Math.cos(angle) * radius,
+                0,
+                Math.sin(angle) * radius
             );
+            
+            const candidate = this.initialPosition.clone().add(randomOffset);
 
-            if (this.isValidPatrolPoint(candidate, groupID, minDistance)) {
-                const node = this.pathfinding.getClosestNode(candidate, this.zone, groupID);
-                if (node?.centroid) {
-                    candidates.push(node.centroid.clone());
+            // Get the closest point on the navmesh for this candidate
+            const node = this.pathfinding.getClosestNode(candidate, this.zone, groupID);
+            
+            if (node?.centroid) {
+                const navmeshPoint = node.centroid.clone();
+                
+                // Check distance constraints after clamping to the navmesh
+                const distanceToMonster = this.model.position.distanceTo(navmeshPoint);
+
+                if (distanceToMonster > minDistance && distanceToMonster < this.config.patrolRadius + 1.0) {
+                    candidates.push(navmeshPoint);
                 }
             }
         }
@@ -390,6 +439,7 @@ export class Monster {
         return candidates;
 
     }
+
 
     /**
      * Checks if a point is valid for patrolling

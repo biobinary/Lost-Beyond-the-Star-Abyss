@@ -4,6 +4,7 @@ import { Monster, MonsterConfig } from '../entities/Monster';
 import { Pathfinding } from 'three-pathfinding';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { PlayerController } from './PlayerController';
+import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 // Definisikan tipe untuk spawn point monster
 interface MonsterSpawnPoint {
@@ -35,7 +36,7 @@ export class MonsterSpawnManager {
     private player: PlayerController;
     private colliders: any[];
     private pathfinding: Pathfinding;
-    private navmesh;
+    private navmesh: THREE.Mesh;
     private ZONE = 'level';
     private navmeshReady = false;
 
@@ -47,28 +48,43 @@ export class MonsterSpawnManager {
         this.loadNavMesh();
     }
 
-    private async loadNavMesh() { 
+    private async loadNavMesh() {
         const loader = new GLTFLoader();
-        
+
         try {
             const gltf = await loader.loadAsync('/models/NavMesh.glb');
 
-            // Transformasi
             gltf.scene.position.set(0, 0, 5);
             gltf.scene.rotation.y = Math.PI / 2;
             this.scene.add(gltf.scene);
 
             let navmeshFound = false;
-            gltf.scene.traverse(node => {
-                if (!this.navmesh && node.isObject3D && node.children && node.children.length > 0) {                    
-                    this.navmesh = node.children[0];
 
-                    const zoneData = Pathfinding.createZone(this.navmesh.geometry);
+            gltf.scene.traverse((child) => {
+                if (child instanceof THREE.Mesh && !navmeshFound) {
+                    this.navmesh = child;
 
+                    // Clone + apply transforms
+                    const geometry = this.navmesh.geometry.clone();
+                    this.navmesh.updateWorldMatrix(true, false);
+                    geometry.applyMatrix4(this.navmesh.matrixWorld);
+
+                    // ✅ Clean up geometry before creating zone
+                    let cleanedGeometry = BufferGeometryUtils.mergeVertices(geometry);
+
+                    // Optional: check for negative scale
+                    const s = this.navmesh.scale;
+                    if (s.x * s.y * s.z < 0) {
+                        cleanedGeometry.scale(-1, 1, 1);
+                    }
+
+                    // ✅ Create zone data from cleaned geometry
+                    const zoneData = Pathfinding.createZone(cleanedGeometry);
                     this.pathfinding.setZoneData(this.ZONE, zoneData);
+
+                    geometry.dispose();
                     navmeshFound = true;
                 }
-
             });
 
             if (!navmeshFound) {
@@ -78,7 +94,7 @@ export class MonsterSpawnManager {
             await this.initializeSpawnPoints();
             this.navmeshReady = true;
 
-        } catch (error) { 
+        } catch (error) {
             console.error('Failed to load NavMesh:', error);
         }
     }
@@ -86,7 +102,7 @@ export class MonsterSpawnManager {
     private async initializeSpawnPoints() {
     
         const points: { position: THREE.Vector3, rotationY?: number }[] = [
-            { position: new THREE.Vector3(0, 0, -1), rotationY: 90 },
+            { position: new THREE.Vector3(0, 0, 0), rotationY: 0 },
             // { position: new THREE.Vector3(10, 0, -15), rotationY: -90 },
             // { position: new THREE.Vector3(-15, 0, -25) },
         ];
