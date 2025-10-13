@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { IWeapon } from '../weapons/IWeapon';
 import { EffectsManager } from './EffectsManager';
 import { InputManager } from './InputManager';
+import { AssetManager } from './AssetManager';
 
 export class WeaponManager {
     
@@ -12,12 +13,14 @@ export class WeaponManager {
     private scene: THREE.Scene;
     private effects: EffectsManager;
     private input: InputManager;
+    private assetManager: AssetManager;
 
-    constructor(camera: THREE.Camera, scene: THREE.Scene, effects: EffectsManager, input: InputManager) {
+    constructor(camera: THREE.Camera, scene: THREE.Scene, effects: EffectsManager, input: InputManager, assetManager: AssetManager) {
         this.camera = camera;
         this.scene = scene;
         this.effects = effects;
         this.input = input;
+        this.assetManager = assetManager;
     }
 
     public async addWeapon(weapon: IWeapon) {
@@ -44,7 +47,7 @@ export class WeaponManager {
         this.inventory.push(weapon);
         this.currentWeaponIndex = this.inventory.length - 1;
 
-        await this.inventory[this.currentWeaponIndex].load(this.camera);
+        this.inventory[this.currentWeaponIndex].load(this.camera);
         console.log(`Added new ${weapon.config.name} to inventory!`);
         this.updateHUD();
 
@@ -64,7 +67,7 @@ export class WeaponManager {
         }
 
         this.currentWeaponIndex = index;
-        await this.inventory[this.currentWeaponIndex].load(this.camera);
+        this.inventory[this.currentWeaponIndex].load(this.camera);
         this.updateHUD(); // Update HUD setelah switch senjata
     
     }

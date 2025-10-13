@@ -13,7 +13,9 @@ import SettingsMenu from "./components/SettingsMenu";
 import StoryTutorial from "./components/StoryTutorial";
 import CreditsMenu from "./components/CreditsMenu";
 import GameOver from "./components/GameOver";
-import {PodWindowOverlay} from "./components/PodWindowOverlay";
+import LoadingScreen from "./components/LoadingScreen";
+import { PodWindowOverlay } from "./components/PodWindowOverlay";
+import { AssetManager } from './systems/AssetManager';
 
 function FadeOverlay({ opacity }: { opacity: number }) {
   return (
@@ -24,8 +26,8 @@ function FadeOverlay({ opacity }: { opacity: number }) {
         backgroundColor: "black",
         opacity,
         transition: "opacity 1s ease-in-out",
-        pointerEvents: "none", // don't block input
-        zIndex: 10000, // always on top
+        pointerEvents: "none",
+        zIndex: 10000,
       }}
     />
   );
@@ -41,9 +43,38 @@ function App() {
   const [showStory, setShowStory] = useState(false);
   const [showCredits, setShowCredits] = useState(false);
   const [isGameOver, setIsGameOver] = useState(false);
-
+  const [assetsLoaded, setAssetsLoaded] = useState(false);
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const [loadingAssetName, setLoadingAssetName] = useState('');
+  const [assetManager, setAssetManager] = useState<AssetManager | null>(null);
+  const [loadingError, setLoadingError] = useState<string | null>(null);
   const [fadeOpacity, setFadeOpacity] = useState(0);
   const [isFading, setIsFading] = useState(false);
+
+  const initializeAssetManager = useCallback(() => {
+    const manager = new AssetManager(
+      (progress, assetName) => {
+        setLoadingProgress(progress);
+        setLoadingAssetName(assetName);
+        if (assetName.includes('Error')) {
+          setLoadingError(assetName);
+        }
+      },
+      () => {
+        setAssetsLoaded(true);
+      }
+    );
+    manager.loadAssets();
+    setAssetManager(manager);
+    return manager;
+  }, []);
+
+  useEffect(() => {
+    const manager = initializeAssetManager();
+    return () => {
+      manager.dispose();
+    };
+  }, [initializeAssetManager]);
 
   useEffect(() => {
     const handleFadeEvent = (e: CustomEvent<{ toBlack: boolean; duration?: number }>) => {
@@ -87,17 +118,20 @@ function App() {
   
   const handlePlayerDied = () => {
     setIsGameOver(true);
-    setIsPaused(true); // Juga pause game
+    setIsPaused(true);
   };
   
   const handleRestart = () => {
-    // Mereset state game
     setIsGameOver(false);
-    setInGame(false); // Kembali ke menu utama untuk memulai ulang
+    setInGame(false);
+    if (assetManager) {
+      assetManager.dispose();
+    }
+    initializeAssetManager();
     setTimeout(() => {
-        setInGame(true);
-        setIsPaused(false);
-    }, 100)
+      setInGame(true);
+      setIsPaused(false);
+    }, 100);
   };
 
   const openSettings = () => {
@@ -116,6 +150,27 @@ function App() {
     });
   };
 
+  if (!assetsLoaded || !assetManager) {
+    return <LoadingScreen progress={loadingProgress} assetName={loadingError || loadingAssetName} />;
+  }
+
+  if (loadingError) {
+    return (
+      <div className="absolute top-0 left-0 w-full h-full bg-black flex justify-center items-center">
+        <div className="text-white text-center">
+          <h1 className="text-2xl">Error Loading Assets</h1>
+          <p>{loadingError}</p>
+          <button
+            className="mt-4 px-4 py-2 bg-cyan-500 text-white rounded"
+            onClick={initializeAssetManager}
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (showCredits) {
     return <CreditsMenu onBack={() => setShowCredits(false)} />;
   }
@@ -129,7 +184,7 @@ function App() {
   }
   
   if (isGameOver) {
-      return <GameOver onRestart={handleRestart} onMainMenu={backToMainMenu} />;
+    return <GameOver onRestart={handleRestart} onMainMenu={backToMainMenu} />;
   }
 
   return (
@@ -147,6 +202,7 @@ function App() {
                   onTogglePause={togglePause}
                   isMusicEnabled={isMusicEnabled}
                   onPlayerDied={handlePlayerDied}
+                  assetManager={assetManager}
                 />
               }
             />

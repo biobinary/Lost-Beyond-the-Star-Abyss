@@ -5,6 +5,7 @@ import { BaseWeapon } from "./BaseWeapon";
 import { WeaponConfig } from "./IWeapon";
 import { WeaponManager } from "@/systems/WeaponManager";
 import { Monster } from "../entities/Monster";
+import { AssetManager } from "@/systems/AssetManager";
 
 const ShotgunConfig: WeaponConfig = {
     name: "Shotgun",
@@ -29,30 +30,29 @@ export class Shotgun extends BaseWeapon {
     private emptySound?: THREE.Audio;
     
     private loadSound() {
-        const audioLoader = new THREE.AudioLoader();
+        
         this.shootSound = new THREE.Audio(this.listener);
-        audioLoader.load('/Audio/sound/shotgun-firing-3.mp3', (buffer) => {
-            this.shootSound!.setBuffer(buffer);
-            this.shootSound!.setVolume(0.4);
-            this.shootSound!.setLoop(false);
-        });
+        const shootAudioBuffer = this.assetManager.get<AudioBuffer>('/Audio/sound/shotgun-firing-3.mp3');
+        this.shootSound.setBuffer(shootAudioBuffer);
+        this.shootSound.setVolume(0.4);
+        this.shootSound.setLoop(false);
+        
         this.reloadSound = new THREE.Audio(this.listener);
-        audioLoader.load('/Audio/sound/gun-reload-2.mp3', (buffer) => {
-            this.reloadSound!.setBuffer(buffer);
-            this.reloadSound!.setVolume(0.6);
-            this.reloadSound!.setLoop(false);
-        });
+        const reloadAudioBuffer = this.assetManager.get<AudioBuffer>('/Audio/sound/gun-reload-2.mp3');
+        this.reloadSound.setBuffer(reloadAudioBuffer);
+        this.reloadSound.setVolume(0.6);
+        this.reloadSound.setLoop(false);
                 
         this.emptySound = new THREE.Audio(this.listener);
-        audioLoader.load('/Audio/sound/empty-gun-shot.mp3', (buffer) => {
-            this.emptySound!.setBuffer(buffer);
-            this.emptySound!.setVolume(0.4);
-            this.emptySound!.setLoop(false);
-        });
+        const emptyAudioBuffer = this.assetManager.get<AudioBuffer>('/Audio/sound/empty-gun-shot.mp3');
+        this.emptySound.setBuffer(emptyAudioBuffer);
+        this.emptySound.setVolume(0.4);
+        this.emptySound.setLoop(false);
+
     }
 
-    constructor(private listener: THREE.AudioListener) {
-        super(ShotgunConfig, 8); // 8 peluru
+    constructor(private listener: THREE.AudioListener, assetManager: AssetManager) {
+        super(ShotgunConfig, 8, assetManager); // 8 peluru
         this.loadSound();
         this.damage = 5;
     }

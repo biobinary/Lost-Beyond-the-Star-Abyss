@@ -3,6 +3,7 @@ import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
 import { toast } from 'sonner';
 import { PlayerController } from '../systems/PlayerController';
 import { Pathfinding, PathfindingHelper } from 'three-pathfinding';
+import { AssetManager } from '../systems/AssetManager';
 
 export interface MonsterConfig {
     modelPath: string;
@@ -30,7 +31,8 @@ export class Monster {
     private model: THREE.Group | null = null;
     private mixer: THREE.AnimationMixer | null = null;
     private raycaster: THREE.Raycaster = new THREE.Raycaster();
-    
+    private assetManager: AssetManager;
+
     // Pathfinding
     private readonly pathfinding: Pathfinding;
     private readonly pathfindingHelper: PathfindingHelper;
@@ -56,6 +58,7 @@ export class Monster {
 
     constructor(
         private readonly scene: THREE.Scene,
+        assetManager: AssetManager,
         config: MonsterConfig,
         colliders: THREE.Object3D[],
         pathfinding: Pathfinding,
@@ -68,6 +71,7 @@ export class Monster {
         this.pathfinding = pathfinding;
         this.zone = zone;
         this.defaultRotationY = rotationY;
+        this.assetManager = assetManager;
 
         this.pathfindingHelper = new PathfindingHelper();
         this.scene.add(this.pathfindingHelper);
@@ -81,7 +85,7 @@ export class Monster {
         this._health = Math.max(0, value);
     }
 
-    public async load(position: THREE.Vector3): Promise<void> {
+    public load(position: THREE.Vector3): void {
         if (this.model) {
             console.warn('Monster model already loaded');
             return;
@@ -90,8 +94,8 @@ export class Monster {
         this.initialPosition.copy(position);
 
         try {
-            const fbxLoader = new FBXLoader();
-            const fbx = await fbxLoader.loadAsync(this.config.modelPath);
+
+            const fbx = this.assetManager.get<THREE.Group>(this.config.modelPath);
             
             this.model = fbx;
             this.setupModel(position);
@@ -102,6 +106,7 @@ export class Monster {
             
             this.scene.add(this.model);
             this.setNewPatrolTarget();
+
         } catch (error) {
             console.error('Failed to load monster model:', error);
             toast.error(`Failed to load monster: ${this.config.modelPath}`);
@@ -110,6 +115,7 @@ export class Monster {
     }
 
     private setupModel(position: THREE.Vector3): void {
+
         if (!this.model) return;
 
         this.model.position.copy(position);
@@ -123,6 +129,7 @@ export class Monster {
                 child.receiveShadow = true;
             }
         });
+
     }
 
     private setupAnimations(fbx: THREE.Group): void {

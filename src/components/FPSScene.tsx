@@ -4,8 +4,11 @@ import * as THREE from "three";
 import { useThreeSetup } from "../hooks/useThreeSetup copy";
 import { InputManager } from "../systems/InputManager";
 import { PlayerController } from "../systems/PlayerController";
+
+// Managers
 import { WeaponManager } from "../systems/WeaponManager";
 import { EffectsManager } from "../systems/EffectsManager";
+import { AssetManager } from "../systems/AssetManager";
 
 // Spawn Managers
 import { WeaponSpawnManager } from "@/systems/WeaponSpawnManager";
@@ -13,10 +16,10 @@ import { HealthItemSpawnManager } from "@/systems/HealthItemSpawnManager";
 import { MonsterSpawnManager } from "@/systems/MonsterManager";
 import { HUD } from "./HUD";
 
-export const FPSScene = ({ isPaused, onTogglePause, isMusicEnabled, onPlayerDied }: { isPaused: boolean; onTogglePause: () => void; isMusicEnabled: boolean; onPlayerDied: () => void; }) => {
+export const FPSScene = ({ isPaused, onTogglePause, isMusicEnabled, onPlayerDied, assetManager }: { isPaused: boolean; onTogglePause: () => void; isMusicEnabled: boolean; onPlayerDied: () => void;assetManager: AssetManager; }) => {
   
   const containerRef = useRef<HTMLDivElement>(null);
-  const threeObjects = useThreeSetup(containerRef);
+  const threeObjects = useThreeSetup(containerRef, assetManager);
   
   const isPausedRef = useRef(isPaused);
   const isMusicEnabledRef = useRef(isMusicEnabled);
@@ -49,10 +52,10 @@ export const FPSScene = ({ isPaused, onTogglePause, isMusicEnabled, onPlayerDied
     const inputManager = new InputManager(renderer.domElement);
     const playerController = new PlayerController(camera, inputManager, colliders);
     const effectsManager = new EffectsManager(scene);
-    const weaponManager = new WeaponManager(camera, scene, effectsManager, inputManager);
-    const monsterSpawnManager = new MonsterSpawnManager(scene, playerController, colliders);
-    const weaponSpawnManager = new WeaponSpawnManager(scene, weaponManager, playerController, effectsManager, listener);
-    const healthItemSpawnManager = new HealthItemSpawnManager(scene, playerController, effectsManager, listener);
+    const weaponManager = new WeaponManager(camera, scene, effectsManager, inputManager, assetManager);
+    const monsterSpawnManager = new MonsterSpawnManager(scene, playerController, colliders, assetManager);
+    const weaponSpawnManager = new WeaponSpawnManager(scene, weaponManager, playerController, effectsManager, listener, assetManager);
+    const healthItemSpawnManager = new HealthItemSpawnManager(scene, playerController, effectsManager, listener, assetManager);
     
     const clock = new THREE.Clock();
     let animationFrameId: number;
@@ -157,7 +160,7 @@ export const FPSScene = ({ isPaused, onTogglePause, isMusicEnabled, onPlayerDied
       inputManager.dispose();
     };
 
-  }, [threeObjects, onTogglePause]);
+  }, [threeObjects, onTogglePause, assetManager]);
 
   return <div ref={containerRef} className="fixed inset-0" />;
 

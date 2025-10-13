@@ -5,14 +5,17 @@ import { toast } from "sonner";
 import { IWeapon, WeaponConfig } from "./IWeapon";
 import { EffectsManager } from "../systems/EffectsManager";
 import { WeaponManager } from "../systems/WeaponManager";
+import { AssetManager } from "../systems/AssetManager";
 
 export abstract class BaseWeapon implements IWeapon {
+
   public model: THREE.Group | null = null;
   public config: WeaponConfig;
   public ammo: number;
   public maxAmmo: number;
   public reserveAmmo: number = 0;
   public damage: number;
+  public assetManager: AssetManager;
 
   protected lastShotTime = 0;
   private muzzleLight: THREE.PointLight;
@@ -26,11 +29,13 @@ export abstract class BaseWeapon implements IWeapon {
   private initialRotation = new THREE.Euler(0, 0, 0);
   private initialScale = new THREE.Vector3(0.008, 0.008, 0.008);
 
-  constructor(config: WeaponConfig, maxAmmo: number) {
+  constructor(config: WeaponConfig, maxAmmo: number, assetManager: AssetManager) {
+    
     this.config = config;
     this.maxAmmo = maxAmmo;
     this.ammo = maxAmmo;
     this.reserveAmmo = 0;
+    this.assetManager = assetManager;
 
     this.initialPosition = config.gunPosition
       ? config.gunPosition.clone()
@@ -44,17 +49,14 @@ export abstract class BaseWeapon implements IWeapon {
     
   }
 
-  public async load(camera?: THREE.Object3D): Promise<void> {  // Camera opsional
-    const loader = new FBXLoader();
-    const textureLoader = new THREE.TextureLoader();
+  public load(camera?: THREE.Object3D) {  // Camera opsional
 
     try {
-      if (this.model == null) {
-        const [fbx, colorTexture] = await Promise.all([
-          loader.loadAsync(this.config.modelPath),
-          textureLoader.loadAsync(this.config.texturePath),
-        ]);
 
+      if (this.model == null) {
+
+        const fbx = this.assetManager.get<THREE.Group>(this.config.modelPath);
+        const colorTexture = this.assetManager.get<THREE.Texture>(this.config.texturePath);
         colorTexture.colorSpace = THREE.SRGBColorSpace;
 
         this.model = fbx;
@@ -66,6 +68,7 @@ export abstract class BaseWeapon implements IWeapon {
             child.castShadow = false;
           }
         });
+
       }
 
       this.model.position.copy(this.initialPosition);
@@ -84,10 +87,11 @@ export abstract class BaseWeapon implements IWeapon {
     } catch (error) {
       console.error(`❌ Error loading FBX weapon ${this.config.name}:`, error);
       toast.error(`Failed to load FBX model for ${this.config.name}.`);
+    
     }
+
   }
 
-  // ... (sisa method sama seperti sebelumnya: update, fire, reload, dll.)
   public update(elapsedTime: number, deltaTime: number): void {
     if (!this.model) return;
     this.handleSway(elapsedTime);

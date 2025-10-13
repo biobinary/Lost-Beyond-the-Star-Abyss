@@ -1,10 +1,10 @@
 // src/hooks/useThreeSetup.ts
 import { useEffect, useState } from "react";
 import * as THREE from "three";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { toast } from "sonner";
+import { AssetManager } from "../systems/AssetManager";
 
-export const useThreeSetup = (containerRef: React.RefObject<HTMLDivElement>) => {
+export const useThreeSetup = (containerRef: React.RefObject<HTMLDivElement>, assetManager: AssetManager) => {
   const [threeObjects, setThreeObjects] = useState<{
     scene: THREE.Scene;
     camera: THREE.PerspectiveCamera;
@@ -32,11 +32,7 @@ export const useThreeSetup = (containerRef: React.RefObject<HTMLDivElement>) => 
     const scene = new THREE.Scene();
     const colliders: THREE.Mesh[] = [];
 
-    const skyboxLoader = new THREE.CubeTextureLoader();
-    const skybox = skyboxLoader.load([
-      '/skybox/right.png', '/skybox/left.png', '/skybox/top.png',
-      '/skybox/bottom.png', '/skybox/front.png', '/skybox/back.png'
-    ]);
+    const skybox = assetManager.get<THREE.CubeTexture>('skybox');
     scene.background = skybox;
     
     const pmremGenerator = new THREE.PMREMGenerator(renderer);
@@ -54,13 +50,11 @@ export const useThreeSetup = (containerRef: React.RefObject<HTMLDivElement>) => 
     const musicAudio = new THREE.Audio(listener);
     const audioLoader = new THREE.AudioLoader();
     
-    // Load music
-    audioLoader.load('/Audio/Music/mystery-in-space-178544.mp3', function(buffer) {
-      musicAudio.setBuffer(buffer);
-      musicAudio.setLoop(true);
-      musicAudio.setVolume(0.5);
-      musicAudio.play();
-    });
+    const musicBuffer = assetManager.get<AudioBuffer>('/Audio/Music/mystery-in-space-178544.mp3');
+    musicAudio.setBuffer(musicBuffer);
+    musicAudio.setLoop(true);
+    musicAudio.setVolume(0.5);
+    musicAudio.play();
 
     // Listen for music toggle events
     const handleToggleMusic = (event: CustomEvent) => {
@@ -96,15 +90,13 @@ export const useThreeSetup = (containerRef: React.RefObject<HTMLDivElement>) => 
 
     // Environment Setup
     async function loadObject(modelName: string, xPos: number, yPos: number, zPos: number, ydeg: number, scale: number, visible: boolean){
-      const modelPath = '../../models/' + modelName;
-
+      
       try {
-        const loader = new GLTFLoader();
 
-        loader.load(modelPath, function(gltf){
+          const gltf = assetManager.get<any>('/models/' + modelName);
           const model = gltf.scene;
           
-          model.traverse((child) => {
+          model.traverse((child: any) => {
             if (child instanceof THREE.Mesh && (child.material instanceof THREE.MeshStandardMaterial || child.material instanceof THREE.MeshPhongMaterial)) {
               child.castShadow = true;
               child.receiveShadow = true;
@@ -118,16 +110,16 @@ export const useThreeSetup = (containerRef: React.RefObject<HTMLDivElement>) => 
           model.visible = visible;
 
           scene.add(model);
-        });
-
+      
       } catch (error) {
-        console.error(`Error loading GLTF weapon ${modelName}:`, error);
-        toast.error(`Failed to load GLTF model for ${modelName}.`);
+        console.error(`Error getting GLTF from cache ${modelName}:`, error);
+        toast.error(`Failed to get GLTF model for ${modelName}.`);
+      
       }
+
     }
 
     loadObject('Map.glb', 0, 0, 5, -90, 1.5, true);
-    //loadObject('NavMesh.glb', 0, 0, 5, 90, 1.0, true);
     loadObject('freeport_space_station1.glb', 115, 0, 100, 0, 1.2, true);
 
     // Create a visible debug box (optional)
@@ -167,6 +159,8 @@ export const useThreeSetup = (containerRef: React.RefObject<HTMLDivElement>) => 
       pmremGenerator.dispose();
       renderer.dispose();
     };
-  }, [containerRef]);
+  }, [containerRef, assetManager]);
+
   return threeObjects;
+
 };

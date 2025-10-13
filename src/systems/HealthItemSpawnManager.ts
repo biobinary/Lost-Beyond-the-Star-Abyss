@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { HealthItem } from '../items/HealthItem';
 import { PlayerController } from './PlayerController';
 import { EffectsManager } from './EffectsManager';
+import { AssetManager } from './AssetManager';
 
 interface SpawnPoint {
     position: THREE.Vector3;
@@ -20,32 +21,36 @@ export class HealthItemSpawnManager {
     private spawnPoints: SpawnPoint[] = [];
     private pickupRadius = 1.5;
     private healSound: THREE.Audio
+    private assetManager: AssetManager;
 
     constructor(
         scene: THREE.Scene,
         playerController: PlayerController,
         effects: EffectsManager,
-        listener: THREE.AudioListener
+        listener: THREE.AudioListener,
+        assetManager: AssetManager
     ) {
+        
         this.scene = scene;
         this.playerController = playerController;
         this.effects = effects;
         this.listener = listener;
+        this.assetManager = assetManager;
+
         this.initializeSpawnPoints();
         this.loadSound();
+
     }
 
     private loadSound() {
-        const audioLoader = new THREE.AudioLoader();
         this.healSound = new THREE.Audio(this.listener);
-        audioLoader.load('/Audio/sound/half_life_medkit_sfx.mp3', (buffer) => {
-            this.healSound!.setBuffer(buffer);
-            this.healSound!.setVolume(0.4);
-            this.healSound!.setLoop(false);
-        });
+        const healSoundBuffer = this.assetManager.get<AudioBuffer>('/Audio/sound/half_life_medkit_sfx.mp3');
+        this.healSound.setBuffer(healSoundBuffer);
+        this.healSound.setVolume(0.4);
+        this.healSound.setLoop(false);
     }
 
-    private async initializeSpawnPoints() {
+    private initializeSpawnPoints() {
         
         const points = [
             { position: new THREE.Vector3(0, 1, -5), item: new HealthItem(25) },
@@ -53,16 +58,16 @@ export class HealthItemSpawnManager {
 
         for (const point of points) {
             const spawnPoint: SpawnPoint = { ...point, model: null };
-            await this.loadItemModel(spawnPoint);
+            this.loadItemModel(this.assetManager, spawnPoint);
             this.spawnPoints.push(spawnPoint);
         }
 
     }
 
-    private async loadItemModel(spawnPoint: SpawnPoint) {
+    private loadItemModel(assetManager: AssetManager, spawnPoint: SpawnPoint) {
         try {
         
-            await spawnPoint.item.load();
+            spawnPoint.item.load(assetManager);
         
             if (spawnPoint.item.model) {
                 spawnPoint.model = spawnPoint.item.model.clone();

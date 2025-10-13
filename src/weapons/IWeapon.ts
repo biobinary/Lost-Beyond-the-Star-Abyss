@@ -2,6 +2,7 @@
 import * as THREE from "three";
 import { EffectsManager } from "../systems/EffectsManager";
 import { WeaponManager } from "../systems/WeaponManager";
+import { AssetManager } from "../systems/AssetManager";
 
 // Definisikan konfigurasi umum untuk semua senjata
 export interface WeaponConfig {
@@ -27,8 +28,9 @@ export interface IWeapon {
     ammo: number;
     maxAmmo: number;
     reserveAmmo: number;  // Tambahan: Ammo cadangan untuk reload
+    assetManager: AssetManager;
 
-    load(camera?: THREE.Object3D): Promise<void>;
+    load(camera?: THREE.Object3D): void;
     update(elapsedTime: number, deltaTime: number): void;
     fire(camera: THREE.Camera, scene: THREE.Scene, effects: EffectsManager): void;
     reload(weaponManager: WeaponManager): void;

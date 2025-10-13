@@ -2,6 +2,7 @@
 import * as THREE from "three";
 import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader.js";
 import { toast } from "sonner";
+import { AssetManager } from "../systems/AssetManager";
 
 export class HealthItem {
 
@@ -13,13 +14,11 @@ export class HealthItem {
         this.healAmount = healAmount;
     }
 
-    public async load(): Promise<void> {
-
-        const loader = new FBXLoader();
+    public load(assetManager: AssetManager): void {
 
         try {
         
-            const fbx = await loader.loadAsync(this.modelPath);
+            const fbx = assetManager.get<THREE.Group>(this.modelPath);
             this.model = fbx;
 
             this.model.traverse((child) => {
@@ -34,6 +33,7 @@ export class HealthItem {
         } catch (error) {
             console.error("❌ Gagal memuat model item kesehatan (FBX):", error);
             toast.error("Gagal memuat model item kesehatan.");
+        
         }
 
     }

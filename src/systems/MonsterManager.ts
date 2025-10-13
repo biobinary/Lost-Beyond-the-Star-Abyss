@@ -4,6 +4,7 @@ import { Monster, MonsterConfig } from '../entities/Monster';
 import { Pathfinding } from 'three-pathfinding';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { PlayerController } from './PlayerController';
+import { AssetManager } from './AssetManager';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 // Definisikan tipe untuk spawn point monster
@@ -39,24 +40,26 @@ export class MonsterSpawnManager {
     private navmesh: THREE.Mesh;
     private ZONE = 'level';
     private navmeshReady = false;
+    private assetManager: AssetManager;
 
-    constructor(scene: THREE.Scene, player: PlayerController, colliders: any[]) {
+    constructor(scene: THREE.Scene, player: PlayerController, colliders: any[], assetManager: AssetManager) {
         this.scene = scene;
         this.player = player;
         this.colliders = colliders;
+        this.assetManager = assetManager;
         this.pathfinding = new Pathfinding();
         this.loadNavMesh();
     }
 
-    private async loadNavMesh() {
-        const loader = new GLTFLoader();
-
+    private loadNavMesh() {
+        
         try {
-            const gltf = await loader.loadAsync('/models/NavMesh.glb');
+
+            const gltf = this.assetManager.get<any>('/models/NavMesh.glb');
 
             gltf.scene.position.set(0, 0, 5);
             gltf.scene.rotation.y = Math.PI / 2;
-            
+
             let navmeshFound = false;
 
             gltf.scene.traverse((child) => {
@@ -90,7 +93,7 @@ export class MonsterSpawnManager {
                 throw new Error('No valid mesh found in NavMesh.glb');
             }
 
-            await this.initializeSpawnPoints();
+            this.initializeSpawnPoints();
             this.navmeshReady = true;
 
         } catch (error) {
@@ -102,7 +105,7 @@ export class MonsterSpawnManager {
     
         const points: { position: THREE.Vector3, rotationY?: number }[] = [
             { position: new THREE.Vector3(0, 0, -5), rotationY: 0 },
-            { position: new THREE.Vector3(-15, 0, -25) },
+            { position: new THREE.Vector3(0, 0, -10) },
         ];
 
         points.forEach(point => {
@@ -120,21 +123,26 @@ export class MonsterSpawnManager {
 
         });
         
-        await this.spawnAllMonsters();
+        this.spawnAllMonsters();
 
     }
     
-    private async spawnAllMonsters() {
+    private spawnAllMonsters() {
+        
         for (const spawnPoint of this.spawnPoints) {
+            
             if (!spawnPoint.instance) {
-                const monster = new Monster(this.scene, spawnPoint.config, this.colliders, this.pathfinding, this.ZONE);
 
-                await monster.load(spawnPoint.position);
+                const monster = new Monster(this.scene, this.assetManager, spawnPoint.config, this.colliders, this.pathfinding, this.ZONE);
+                monster.load(spawnPoint.position);
                 
                 spawnPoint.instance = monster;
                 this.activeMonsters.push(monster);
+
             }
+
         }
+            
     }
 
     public update(deltaTime: number) {
