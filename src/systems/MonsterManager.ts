@@ -56,9 +56,7 @@ export class MonsterSpawnManager {
 
             gltf.scene.position.set(0, 0, 5);
             gltf.scene.rotation.y = Math.PI / 2;
-            gltf.scene.visible = false; 
-            this.scene.add(gltf.scene);
-
+            
             let navmeshFound = false;
 
             gltf.scene.traverse((child) => {
@@ -104,7 +102,6 @@ export class MonsterSpawnManager {
     
         const points: { position: THREE.Vector3, rotationY?: number }[] = [
             { position: new THREE.Vector3(0, 0, -5), rotationY: 0 },
-            { position: new THREE.Vector3(10, 0, -15), rotationY: -90 },
             { position: new THREE.Vector3(-15, 0, -25) },
         ];
 
