@@ -1,3 +1,4 @@
+// src/components/HUD.tsx
 import { useEffect, useState } from 'react';
 import { Progress } from "@/components/ui/progress";
 
@@ -22,7 +23,7 @@ interface PlayerMovementState {
   isSprinting: boolean;
 }
 
-export const HUD = () => {
+export const HUD = ({ showFPS }: { showFPS: boolean }) => {
   const [weaponInfo, setWeaponInfo] = useState<WeaponInfo | null>(null);
   const [playerStats, setPlayerStats] = useState<PlayerStats>({ health: 100, maxHealth: 100, stamina: 100, maxStamina: 100 });
   const [fps, setFps] = useState(60);
@@ -73,6 +74,7 @@ export const HUD = () => {
 
     let frameCount = 0;
     let lastTime = performance.now();
+    let animationFrameId: number;
 
     const updateFPS = () => {
       frameCount++;
@@ -84,7 +86,7 @@ export const HUD = () => {
         lastTime = currentTime;
       }
 
-      requestAnimationFrame(updateFPS);
+      animationFrameId = requestAnimationFrame(updateFPS);
     };
 
     updateFPS();
@@ -94,6 +96,7 @@ export const HUD = () => {
       window.removeEventListener('playerStatsUpdate' as any, handlePlayerStatsUpdate);
       window.removeEventListener('playerMovementUpdate' as any, handlePlayerMovementUpdate);
       window.removeEventListener('medkitPickup', handleMedkitPickup);
+      cancelAnimationFrame(animationFrameId);
     };
   }, [previousHealth]);
 
@@ -213,20 +216,22 @@ export const HUD = () => {
       )}
 
       {/* FPS Counter - Top Right */}
-      <div className="absolute top-6 right-6">
-        <div
-          className="bg-black/80 backdrop-blur-sm px-4 py-2 border-2 border-cyan-800/50"
-          style={{ clipPath: 'polygon(0% 20%, 5% 0%, 100% 0%, 100% 100%, 0% 100%)' }}
-        >
-          <span
-            className={`text-sm ${
-              fps >= 55 ? 'text-green-500' : fps >= 30 ? 'text-yellow-500' : 'text-red-500'
-            }`}
+      {showFPS && (
+        <div className="absolute top-6 right-6">
+          <div
+            className="bg-black/80 backdrop-blur-sm px-4 py-2 border-2 border-cyan-800/50"
+            style={{ clipPath: 'polygon(0% 20%, 5% 0%, 100% 0%, 100% 100%, 0% 100%)' }}
           >
-            FPS: {fps}
-          </span>
+            <span
+              className={`text-sm ${
+                fps >= 55 ? 'text-green-500' : fps >= 30 ? 'text-yellow-500' : 'text-red-500'
+              }`}
+            >
+              FPS: {fps}
+            </span>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Low Ammo Warning */}
       {weaponInfo && weaponInfo.ammo === 0 && (

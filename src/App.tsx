@@ -50,6 +50,7 @@ function App() {
   const [loadingError, setLoadingError] = useState<string | null>(null);
   const [fadeOpacity, setFadeOpacity] = useState(0);
   const [isFading, setIsFading] = useState(false);
+  const [showFPS, setShowFPS] = useState(true);
 
   const initializeAssetManager = useCallback(() => {
     const manager = new AssetManager(
@@ -150,6 +151,10 @@ function App() {
     });
   };
 
+  const toggleFPS = () => {
+    setShowFPS(prev => !prev);
+  };
+
   if (!assetsLoaded || !assetManager) {
     return <LoadingScreen progress={loadingProgress} assetName={loadingError || loadingAssetName} />;
   }
@@ -203,6 +208,7 @@ function App() {
                   isMusicEnabled={isMusicEnabled}
                   onPlayerDied={handlePlayerDied}
                   assetManager={assetManager}
+                  showFPS={showFPS}
                 />
               }
             />
@@ -221,6 +227,8 @@ function App() {
               onBack={closeSettings}
               isMusicEnabled={isMusicEnabled}
               onToggleMusic={toggleMusic}
+              showFPS={showFPS}
+              onToggleFPS={toggleFPS}
             />
           )}
           <FadeOverlay opacity={fadeOpacity} />

@@ -6,9 +6,17 @@ interface SettingsMenuProps {
   onBack: () => void;
   isMusicEnabled: boolean;
   onToggleMusic: () => void;
+  showFPS: boolean;
+  onToggleFPS: () => void;
 }
 
-const SettingsMenu: React.FC<SettingsMenuProps> = ({ onBack, isMusicEnabled, onToggleMusic }) => {
+const SettingsMenu: React.FC<SettingsMenuProps> = ({
+  onBack,
+  isMusicEnabled,
+  onToggleMusic,
+  showFPS,
+  onToggleFPS
+}) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [flicker, setFlicker] = useState(false);
   const [stars, setStars] = useState<Array<{ x: number; y: number; size: number; speed: number; opacity: number }>>([]);
@@ -36,7 +44,8 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({ onBack, isMusicEnabled, onT
   }, []);
 
   return (
-    <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-black via-slate-950 to-cyan-950/20 flex justify-center items-center overflow-hidden z-20">
+    <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-black via-slate-950 to-cyan-950/20 flex justify-center items-center overflow-hidden">
+      
       {/* Dying Stars */}
       <div className="absolute inset-0 overflow-hidden">
         {stars.map((star, i) => (
@@ -58,18 +67,16 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({ onBack, isMusicEnabled, onT
 
       {/* Ominous Blue Fog */}
       <div className="absolute inset-0 bg-gradient-radial from-transparent via-blue-950/10 to-blue-900/30 animate-pulse" style={{ animationDuration: '8s' }} />
-      
+
       {/* Dark Vignette */}
       <div className="absolute inset-0 bg-gradient-radial from-transparent via-transparent to-black opacity-70" />
-      
-      {/* Energy Drip Effect */}
+
+      {/* Energy Drip Effects */}
       <div className="absolute top-0 left-1/4 w-1 h-32 bg-gradient-to-b from-blue-900/60 to-transparent animate-drip" />
       <div className="absolute top-0 right-1/3 w-1 h-24 bg-gradient-to-b from-cyan-900/40 to-transparent animate-drip" style={{ animationDelay: '2s' }} />
-      
+
       {/* Flickering Static */}
-      {flicker && (
-        <div className="absolute inset-0 bg-white opacity-5 pointer-events-none" />
-      )}
+      {flicker && <div className="absolute inset-0 bg-white opacity-5 pointer-events-none" />}
 
       {/* Static Noise Overlay */}
       <div
@@ -80,52 +87,67 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({ onBack, isMusicEnabled, onT
       />
 
       {/* Main Content */}
-      <div className={`relative z-10 text-center space-y-8 p-8 transition-all duration-1000 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-        {/* Title */}
+      <div className={`relative z-10 text-center space-y-6 p-8 transition-all duration-1000 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+
+        {/* Distress Signal Icon */}
+        <div className="flex justify-center mb-4">
+          <div className="relative">
+            <svg className="w-16 h-16 text-cyan-500 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+            </svg>
+            <div className="absolute inset-0 w-16 h-16 border-2 border-cyan-500/50 animate-ping" />
+          </div>
+        </div>
+
+        {/* Title with Glitch Effect */}
         <div className="relative mb-8">
           <h1
             className={`text-5xl md:text-7xl font-bold text-cyan-50 tracking-wide filter drop-shadow-[0_0_20px_rgba(0,150,200,0.8)] ${flicker ? 'opacity-70' : ''}`}
-            style={{
-              textShadow: '2px 2px 4px rgba(0,0,0,0.8), 0 0 40px rgba(0,100,139,0.6)',
-              fontFamily: 'monospace',
-            }}
+            style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8), 0 0 40px rgba(0,100,139,0.6)', fontFamily: 'monospace' }}
           >
             SETTINGS
           </h1>
-          {/* Glitch layers */}
           <div className="absolute top-0 left-0 w-full opacity-30 animate-glitch-horror" style={{ color: '#0088AA' }}>
-            <h1 className="text-5xl md:text-7xl font-bold tracking-wide" style={{ fontFamily: 'monospace' }}>
-              SETTINGS
-            </h1>
+            <h1 className="text-5xl md:text-7xl font-bold tracking-wide" style={{ fontFamily: 'monospace' }}>SETTINGS</h1>
           </div>
+        </div>
+
+        {/* Warning Message */}
+        <div className="h-8 flex items-center justify-center my-6">
+          <p className="text-base md:text-lg text-cyan-400/80 font-mono tracking-[0.3em] animate-pulse border-y border-cyan-900/50 py-2 px-6">
+            [ SYSTEM CONFIGURATION ]
+          </p>
         </div>
 
         {/* Settings Panel */}
         <div className="relative group max-w-md mx-auto">
-          <div className="absolute inset-0 bg-cyan-900/20 rounded blur-xl opacity-60" />
-          <div className="relative bg-black/80 backdrop-blur-sm p-8 border-2 border-cyan-800/50 shadow-[0_0_30px_rgba(0,139,139,0.3)]"
-            style={{
-              clipPath: 'polygon(0% 0%, 100% 0%, 100% 95%, 98% 100%, 0% 100%)',
-            }}
-          >
-            <div className="flex items-center justify-between py-4">
-              <Label htmlFor="music-toggle" className="text-cyan-200 font-mono text-lg tracking-wider flex items-center gap-3">
-                <span className="inline-block w-2 h-2 bg-cyan-500 rounded-full animate-pulse" />
-                BACKGROUND MUSIC
-              </Label>
-              <Switch
-                id="music-toggle"
-                checked={isMusicEnabled}
-                onCheckedChange={onToggleMusic}
-                className="data-[state=checked]:bg-cyan-600"
-              />
-            </div>
-            
-            {/* Status Indicator */}
-            <div className="mt-4 pt-4 border-t border-cyan-900/30">
-              <p className="text-cyan-400/60 text-xs font-mono tracking-widest">
-                STATUS: <span className={isMusicEnabled ? "text-cyan-400" : "text-red-400"}>{isMusicEnabled ? "ENABLED" : "DISABLED"}</span>
-              </p>
+          <div className="absolute inset-0 bg-cyan-900/30 rounded blur-xl opacity-60 group-hover:opacity-90 transition-opacity duration-500" />
+          <div className="relative bg-black/80 backdrop-blur-sm p-8 border-2 border-cyan-800/50 shadow-[0_0_30px_rgba(0,139,139,0.3)]" style={{ clipPath: 'polygon(0% 0%, 100% 0%, 100% 95%, 98% 100%, 0% 100%)' }}>
+            <div className="divide-y divide-cyan-900/30">
+              <div className="flex items-center justify-between py-4">
+                <Label htmlFor="music-toggle" className="text-cyan-200 font-mono text-lg tracking-wider flex items-center gap-3">
+                  <span className="inline-block w-2 h-2 bg-cyan-500 rounded-full animate-pulse" />
+                  BACKGROUND MUSIC
+                </Label>
+                <Switch
+                  id="music-toggle"
+                  checked={isMusicEnabled}
+                  onCheckedChange={onToggleMusic}
+                  className="data-[state=checked]:bg-cyan-600"
+                />
+              </div>
+              <div className="flex items-center justify-between py-4">
+                <Label htmlFor="fps-toggle" className="text-cyan-200 font-mono text-lg tracking-wider flex items-center gap-3">
+                  <span className="inline-block w-2 h-2 bg-cyan-500 rounded-full animate-pulse" />
+                  FPS COUNTER
+                </Label>
+                <Switch
+                  id="fps-toggle"
+                  checked={showFPS}
+                  onCheckedChange={onToggleFPS}
+                  className="data-[state=checked]:bg-cyan-600"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -134,11 +156,9 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({ onBack, isMusicEnabled, onT
         <div className="relative group mt-8">
           <div className="absolute inset-0 bg-cyan-900/30 rounded blur-xl opacity-60 group-hover:opacity-90 transition-opacity duration-500" />
           <button
-            className={`relative bg-black border-2 border-cyan-800 text-cyan-200 font-mono font-bold text-lg md:text-xl py-3 px-12 hover:bg-cyan-950 hover:border-cyan-600 hover:text-cyan-50 transition-all duration-300 shadow-[0_0_30px_rgba(0,139,139,0.4)] hover:shadow-[0_0_50px_rgba(0,139,139,0.8)] backdrop-blur-sm ${flicker ? 'animate-pulse' : ''}`}
+            className={`relative bg-black border-2 border-cyan-800 text-cyan-200 font-mono font-bold text-lg md:text-xl py-4 px-16 hover:bg-cyan-950 hover:border-cyan-600 hover:text-cyan-50 transition-all duration-300 shadow-[0_0_30px_rgba(0,139,139,0.4)] hover:shadow-[0_0_50px_rgba(0,139,139,0.8)] backdrop-blur-sm ${flicker ? 'animate-pulse' : ''}`}
             onClick={onBack}
-            style={{
-              clipPath: 'polygon(0% 0%, 100% 0%, 100% 85%, 95% 100%, 0% 100%)',
-            }}
+            style={{ clipPath: 'polygon(0% 0%, 100% 0%, 100% 85%, 95% 100%, 0% 100%)' }}
           >
             <span className="relative z-10 flex items-center gap-3 tracking-widest">
               <span className="inline-block w-2 h-2 bg-cyan-500 rounded-full animate-pulse" />
@@ -150,33 +170,11 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({ onBack, isMusicEnabled, onT
 
         {/* Warning Text */}
         <p className="text-cyan-400/60 text-xs md:text-sm font-mono mt-4 animate-pulse italic">
-          &gt; Audio system operational. Adjust as needed.
+          &gt; Adjust as needed.
         </p>
       </div>
 
-      {/* Corrupted Corner Decorations */}
-      <div
-        className="absolute top-0 left-0 w-24 h-24 border-l-2 border-t-2 border-cyan-800/40"
-        style={{ clipPath: 'polygon(0 0, 100% 0, 100% 15%, 95% 20%, 0 20%, 0 100%)' }}
-      />
-      <div
-        className="absolute top-0 right-0 w-24 h-24 border-r-2 border-t-2 border-cyan-800/40"
-        style={{ clipPath: 'polygon(0 0, 100% 0, 100% 100%, 100% 20%, 5% 20%, 0 15%)' }}
-      />
-      <div
-        className="absolute bottom-0 left-0 w-24 h-24 border-l-2 border-b-2 border-cyan-800/40"
-        style={{ clipPath: 'polygon(0 0, 0 100%, 100% 100%, 100% 85%, 5% 80%, 0 80%)' }}
-      />
-      <div
-        className="absolute bottom-0 right-0 w-24 h-24 border-r-2 border-b-2 border-cyan-800/40"
-        style={{ clipPath: 'polygon(100% 0, 100% 100%, 0 100%, 0 85%, 95% 80%, 100% 80%)' }}
-      />
-
-      {/* Scanning Lines */}
-      <div className="absolute inset-0 opacity-5 pointer-events-none">
-        <div className="absolute w-full h-0.5 bg-gradient-to-r from-transparent via-cyan-500 to-transparent animate-scan-slow" />
-      </div>
-
+      {/* CSS Animations */}
       <style>{`
         @keyframes glitch-horror {
           0%, 100% { transform: translate(0); opacity: 0.3; }
@@ -186,33 +184,19 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({ onBack, isMusicEnabled, onT
           40% { transform: translate(3px, 3px); opacity: 0.3; }
           50% { transform: translate(0); opacity: 0.5; }
         }
-        
         @keyframes scan-slow {
           0% { top: 0%; }
           100% { top: 100%; }
         }
-        
         @keyframes drip {
           0% { transform: translateY(-100%); opacity: 0; }
           50% { opacity: 0.6; }
           100% { transform: translateY(100vh); opacity: 0; }
         }
-        
-        .animate-glitch-horror {
-          animation: glitch-horror 4s infinite;
-        }
-        
-        .animate-scan-slow {
-          animation: scan-slow 12s linear infinite;
-        }
-        
-        .animate-drip {
-          animation: drip 8s ease-in infinite;
-        }
-        
-        .bg-gradient-radial {
-          background: radial-gradient(circle, var(--tw-gradient-stops));
-        }
+        .animate-glitch-horror { animation: glitch-horror 4s infinite; }
+        .animate-scan-slow { animation: scan-slow 12s linear infinite; }
+        .animate-drip { animation: drip 8s ease-in infinite; }
+        .bg-gradient-radial { background: radial-gradient(circle, var(--tw-gradient-stops)); }
       `}</style>
     </div>
   );
