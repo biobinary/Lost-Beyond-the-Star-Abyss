@@ -106,6 +106,7 @@ export class MonsterSpawnManager {
         const points: { position: THREE.Vector3, rotationY?: number }[] = [
             { position: new THREE.Vector3(0, 0, -5), rotationY: 0 },
             { position: new THREE.Vector3(0, 0, -10) },
+            { position: new THREE.Vector3(-25, 0, -52) },
         ];
 
         points.forEach(point => {

@@ -120,6 +120,7 @@ export const useThreeSetup = (containerRef: React.RefObject<HTMLDivElement>, ass
     }
 
     loadObject('Map.glb', 0, 0, 5, -90, 1.5, true);
+    loadObject('EscapePod_Window.glb', 0, 0, 5, 0, 1, true);
     loadObject('freeport_space_station1.glb', 115, 0, 100, 0, 1.2, true);
 
     // Create a visible debug box (optional)
