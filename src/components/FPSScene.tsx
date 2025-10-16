@@ -64,9 +64,9 @@ export const FPSScene = ({ isPaused, onTogglePause, isMusicEnabled, onPlayerDied
     let cutsceneProgress = 0;
 
     let startPos = new THREE.Vector3();
-    let endPos = new THREE.Vector3();
     let startRot = new THREE.Euler();
-    let endRot = new THREE.Euler();
+    let escapePodModel;
+    loadObject('EscapePod_Window.glb', 0, 5, 60, 0, 89, 1, true).then(model => {escapePodModel = model;});
 
     const animate = () => {
 
@@ -104,11 +104,15 @@ export const FPSScene = ({ isPaused, onTogglePause, isMusicEnabled, onPlayerDied
         }
 
         // Interpolate position
-        camera.position.lerpVectors(startPos, endPos, cutsceneProgress);
+        if(escapePodModel){
+          escapePodModel.position.z = startPos.z + 1.5 - 35 * cutsceneProgress;
+          escapePodModel.rotation.y = 0.25 * cutsceneProgress;
+        }
+
+        camera.position.z = startPos.z - 35 * cutsceneProgress;
 
         // Interpolate rotation
-        const eased = THREE.MathUtils.smoothstep(cutsceneProgress, 0, 1);
-        camera.rotation.z = THREE.MathUtils.lerp(startRot.z, endRot.z, eased);
+        camera.rotation.z = startRot.z - 0.25 * cutsceneProgress;
       }
       
       if (detectionArea.containsPoint(camera.position) && !cutsceneStarted) {
@@ -132,25 +136,46 @@ export const FPSScene = ({ isPaused, onTogglePause, isMusicEnabled, onPlayerDied
         camera.position.set(0, 5, 60);
         startPos.copy(camera.position);
 
-        camera.rotation.y = 180 * Math.PI / 180
+        camera.rotation.x = 0;
+        camera.rotation.y = Math.PI;
+        camera.rotation.z = 0;
 
-        window.dispatchEvent(new CustomEvent("showPodWindow", { detail: { show: true } }));
         cutsceneStarted = true;
-
-        const backward = new THREE.Vector3(0, 0, 35).applyQuaternion(camera.quaternion);
-        endPos.copy(startPos).add(backward);
         
-        // Rotate very slightly upward and to the side
-        endRot.set(
-          startRot.x,
-          startRot.y,
-          startRot.z - 0.25
-        );
-
         // Fade back
         window.dispatchEvent(new CustomEvent("fadeScreen", { detail: { toBlack: false, duration: 1000 } }));
       }, 1500);
       
+    }
+
+    async function loadObject(modelName: string, xPos: number, yPos: number, zPos: number, ydeg: number, xdeg: number, scale: number, visible: boolean){
+      
+      try {
+
+          const gltf = assetManager.get<any>('/models/' + modelName);
+          const model = gltf.scene;
+          
+          model.traverse((child: any) => {
+            if (child instanceof THREE.Mesh && (child.material instanceof THREE.MeshStandardMaterial || child.material instanceof THREE.MeshPhongMaterial)) {
+              child.castShadow = true;
+              child.receiveShadow = true;
+              colliders.push(child);
+            }
+          });
+
+          model.scale.set(scale, scale, scale);
+          model.position.set(xPos, yPos, zPos);
+          model.rotation.y = ydeg * Math.PI / 180;
+          model.rotation.x = xdeg * Math.PI / 180;
+          model.visible = visible;
+
+          scene.add(model);
+          return model;
+      
+      } catch (error) {
+        console.error(`Error getting GLTF from cache ${modelName}:`, error);      
+      }
+
     }
 
     return () => {
