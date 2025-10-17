@@ -64,7 +64,7 @@ export class Blaster extends BaseWeapon {
             return;
         } else if(!this.model) return;
         
-        super.onFire(); // Panggil logika dasar: kurangi amunisi, set cooldown, mulai recoil
+        super.onFire();
         
         if (this.shootSound?.buffer) {
             const clone = new THREE.Audio(this.shootSound.listener);
@@ -72,45 +72,33 @@ export class Blaster extends BaseWeapon {
             clone.setVolume(this.shootSound.getVolume());
             clone.setLoop(false);
             clone.play();
-
-            // Auto-remove after playback to avoid buildup
+    
             clone.source.onended = () => {
                 if (clone.parent) clone.parent.remove(clone);
             };
-
-            // Optionally attach to weapon for spatial sound
             this.model.add(clone);
         }
-
-        // Gunakan muzzlePosition dari config jika tersedia
+    
         const muzzleLocal = this.config.muzzlePosition ? this.config.muzzlePosition.clone() : new THREE.Vector3(0, 0, -0.5);
         const muzzleWorld = this.config.gunPosition.clone().add(muzzleLocal.clone());
         camera.localToWorld(muzzleWorld);
-
-        // PERBAIKAN: Gunakan arah kamera, bukan arah weapon model
-        // Karena weapon mengikuti kamera, gunakan camera direction untuk akurasi
+    
         const shootDirection = new THREE.Vector3();
         camera.getWorldDirection(shootDirection);
         shootDirection.normalize();
-
-        // OPSIONAL: Tambahkan sedikit offset untuk raycast origin
-        // agar tidak mengenai objek yang terlalu dekat dengan kamera
+    
         const rayOrigin = muzzleWorld.clone();
         
-        // Raycast dari muzzle sepanjang arah kamera
         this.raycaster.set(rayOrigin, shootDirection);
-        
-        // PERBAIKAN: Tambahkan parameter untuk mengabaikan objek yang terlalu dekat
-        this.raycaster.far = 1000; // Jarak maksimal raycast
-        this.raycaster.near = 0.1; // Jarak minimal (hindari self-intersection)
+        this.raycaster.far = 1000;
+        this.raycaster.near = 0.1;
         
         const intersects = this.raycaster.intersectObjects(scene.children, true);
-
+    
         let bulletEnd = new THREE.Vector3();
         let hitFound = false;
-
+    
         for (const inter of intersects) {
-            // Lewati hits yang berasal dari model senjata sendiri
             let parent: THREE.Object3D | null = inter.object;
             let belongsToWeapon = false;
             while (parent) {
@@ -120,43 +108,39 @@ export class Blaster extends BaseWeapon {
                 }
                 parent = parent.parent;
             }
-
+    
             if (belongsToWeapon || inter.distance < 0.1) 
                 continue;
-
+    
             const hitEntity = inter.object.userData.entity;
-
+    
             if (hitEntity && hitEntity instanceof Monster) {
                 hitEntity.takeDamage(this.damage);
             }
             
-            // Valid hit
             bulletEnd.copy(inter.point);
             
-            // Hitung normal dengan benar
-            let worldNormal = new THREE.Vector3(0, 1, 0); // default
+            let worldNormal = new THREE.Vector3(0, 1, 0);
             if (inter.face) {
                 worldNormal = inter.face.normal.clone();
-                
-                // Transformasi normal ke world space
                 const normalMatrix = new THREE.Matrix3().getNormalMatrix(inter.object.matrixWorld);
                 worldNormal.applyMatrix3(normalMatrix).normalize();
             }
             
-            effects.createImpactEffect(bulletEnd.clone(), worldNormal);
+            // Enhanced impact with blue color for blaster
+            effects.createImpactEffect(bulletEnd.clone(), worldNormal, 0x00aaff);
             hitFound = true;
             break;
         }
-
+    
         if (!hitFound) {
-            // PERBAIKAN: Gunakan shootDirection yang sudah benar
             bulletEnd.copy(rayOrigin).add(shootDirection.multiplyScalar(100));
         }
-
-        // Buat bullet trail dari muzzle ke endpoint
-        effects.createBulletTrail(muzzleWorld, bulletEnd);
+    
+        // Enhanced bullet trail with blue color
+        effects.createBulletTrail(muzzleWorld, bulletEnd, 0x00ffff);
     }
-
+    
     public reload(weaponManager: WeaponManager) {
         let ammoChange = (this.maxAmmo - this.ammo)
 
