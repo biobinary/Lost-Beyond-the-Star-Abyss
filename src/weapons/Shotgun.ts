@@ -59,11 +59,6 @@ export class Shotgun extends BaseWeapon {
 
     public fire(camera: THREE.Camera, scene: THREE.Scene, effects: EffectsManager): void {
 
-        // Cancel ongoing reload if player fires
-        if (this.isReloading) {
-            this.endReload();
-        }
-
         if (!this.canShoot()){
             if (this.emptySound && !this.emptySound.isPlaying && this.ammo <= 0) {
                 this.emptySound?.play();
@@ -161,10 +156,7 @@ export class Shotgun extends BaseWeapon {
             return;
         }
 
-        if (this.isReloading) return; // prevent duplicate reloads
-        this.beginReload();
-
-        while (this.isReloading && this.ammo < this.maxAmmo && this.reserveAmmo > 0) {
+        while (this.ammo < this.maxAmmo && this.reserveAmmo > 0) {
             this.ammo++;
             this.reserveAmmo--;
             // Reuse the pre-created audio node to avoid per-shell allocations
@@ -175,7 +167,6 @@ export class Shotgun extends BaseWeapon {
             await this.wait(reloadDelayPerShell);
             weaponManager.updateHUD();
         }
-        this.endReload();
         
         console.log(`${this.config.name} reloaded. Clip: ${this.ammo}/${this.maxAmmo}, Reserve: ${this.reserveAmmo}`);
 

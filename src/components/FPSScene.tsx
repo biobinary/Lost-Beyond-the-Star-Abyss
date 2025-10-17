@@ -114,6 +114,8 @@ export const FPSScene = ({ isPaused, onTogglePause, isMusicEnabled, onPlayerDied
         // Interpolate rotation
         camera.rotation.z = startRot.z - 0.25 * cutsceneProgress;
       }
+      // Advance effects timeline once per frame
+      effectsManager.update(delta);
       
       if (detectionArea.containsPoint(camera.position) && !cutsceneStarted) {
         startCutscene();

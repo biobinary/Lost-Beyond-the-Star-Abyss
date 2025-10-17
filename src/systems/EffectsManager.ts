@@ -102,18 +102,47 @@ const impactFragmentShader = `
 export class EffectsManager {
   private scene: THREE.Scene;
   private time: number = 0;
+  private trails: Array<{ mesh: THREE.Mesh, material: THREE.ShaderMaterial, geometry: THREE.CylinderGeometry, startTime: number }> = [];
+  private particleEffects: Array<{ points: THREE.Points, material: THREE.ShaderMaterial, geometry: THREE.BufferGeometry, startTime: number, lifetime: number }> = [];
+  private cachedParticleTexture?: THREE.Texture;
 
   constructor(scene: THREE.Scene) {
     this.scene = scene;
-    this.animateTime();
+    // Defer time advancement to external game loop via update(delta)
   }
 
-  private animateTime() {
-    const updateTime = () => {
-      this.time += 0.016;
-      requestAnimationFrame(updateTime);
-    };
-    updateTime();
+  public update(delta: number) {
+    this.time += delta;
+
+    // Update trails
+    for (let i = this.trails.length - 1; i >= 0; i--) {
+      const t = this.trails[i];
+      const elapsed = this.time - t.startTime;
+      const opacity = Math.max(0, 0.9 - (elapsed * 4.5));
+      t.material.uniforms.time.value = elapsed * 10;
+      t.material.uniforms.opacity.value = opacity;
+      const scale = 1.0 + elapsed * 0.5;
+      t.mesh.scale.set(scale, 1, scale);
+      if (opacity <= 0) {
+        this.scene.remove(t.mesh);
+        t.geometry.dispose();
+        t.material.dispose();
+        this.trails.splice(i, 1);
+      }
+    }
+
+    // Update impact particles
+    for (let i = this.particleEffects.length - 1; i >= 0; i--) {
+      const p = this.particleEffects[i];
+      const elapsed = this.time - p.startTime;
+      p.material.uniforms.time.value = elapsed;
+      if (elapsed >= p.lifetime) {
+        this.scene.remove(p.points);
+        p.geometry.dispose();
+        p.material.dispose();
+        this.particleEffects.splice(i, 1);
+      }
+    }
   }
 
   public createBulletTrail(start: THREE.Vector3, end: THREE.Vector3, color: number = 0x00ffff) {
@@ -148,32 +177,7 @@ export class EffectsManager {
     
     this.scene.add(trail);
 
-    // Enhanced animation with multiple effects
-    let opacity = 0.9;
-    let scale = 1.0;
-    let startTime = this.time;
-    
-    const animateTrail = () => {
-      const elapsed = this.time - startTime;
-      material.uniforms.time.value = elapsed * 10;
-      
-      // Fade out
-      opacity = Math.max(0, 0.9 - (elapsed * 4.5));
-      material.uniforms.opacity.value = opacity;
-      
-      // Expand slightly during fade
-      scale = 1.0 + elapsed * 0.5;
-      trail.scale.set(scale, 1, scale);
-      
-      if (opacity <= 0) {
-        this.scene.remove(trail);
-        geometry.dispose();
-        material.dispose();
-        return;
-      }
-      requestAnimationFrame(animateTrail);
-    };
-    animateTrail();
+    this.trails.push({ mesh: trail, material, geometry, startTime: this.time });
 
     return trail;
   }
@@ -232,7 +236,7 @@ export class EffectsManager {
 
     const material = new THREE.ShaderMaterial({
       uniforms: {
-        pointTexture: { value: this.createParticleTexture() },
+        pointTexture: { value: this.getParticleTexture() },
         time: { value: 0 }
       },
       vertexShader: impactVertexShader,
@@ -246,25 +250,11 @@ export class EffectsManager {
     particles.position.copy(position);
     this.scene.add(particles);
 
-    // Enhanced animation with physics
-    let startTime = this.time;
-    
-    const animate = () => {
-      const elapsed = this.time - startTime;
-      material.uniforms.time.value = elapsed;
-      
-      if (elapsed >= 1.0) {
-        this.scene.remove(particles);
-        geometry.dispose();
-        material.dispose();
-        return;
-      }
-      requestAnimationFrame(animate);
-    };
-    animate();
+    this.particleEffects.push({ points: particles, material, geometry, startTime: this.time, lifetime: 1.0 });
   }
 
-  private createParticleTexture(): THREE.Texture {
+  private getParticleTexture(): THREE.Texture {
+    if (this.cachedParticleTexture) return this.cachedParticleTexture;
     const canvas = document.createElement('canvas');
     canvas.width = 64;
     canvas.height = 64;
@@ -281,6 +271,7 @@ export class EffectsManager {
     context.fillRect(0, 0, 64, 64);
     
     const texture = new THREE.CanvasTexture(canvas);
+    this.cachedParticleTexture = texture;
     return texture;
   }
 
@@ -299,19 +290,27 @@ export class EffectsManager {
           gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
         }
       `,
-      fragmentShader: `
+      fragmentShader:  `
         uniform vec3 color;
         uniform float time;
         varying vec2 vUv;
-        
+
         void main() {
           float pulse = sin(time * 3.0) * 0.5 + 0.5;
+      
+          // Ubah radius lingkaran berdasarkan waktu (membesar dan mengecil)
+          float radius = 0.45 + pulse * 0.1;  // semula 0.45, osilasi hingga 0.55
+          float thickness = 0.25;             // ketebalan ring
+
           float dist = length(vUv - vec2(0.5, 0.5));
-          float circle = smoothstep(0.45, 0.5, dist) * smoothstep(0.55, 0.5, dist);
+          float inner = smoothstep(radius - thickness, radius, dist);
+          float outer = 1.0 - smoothstep(radius, radius + thickness, dist);
+          float circle = inner * outer;
+
           float alpha = circle * (0.3 + pulse * 0.3);
           gl_FragColor = vec4(color, alpha);
         }
-      `,
+    `,
       transparent: true,
       side: THREE.DoubleSide,
       blending: THREE.AdditiveBlending
@@ -322,11 +321,14 @@ export class EffectsManager {
     ring.position.copy(position);
     this.scene.add(ring);
 
-    const animate = () => {
+    // Aura shader time driven by external update; hook via onBeforeRender
+    ring.onBeforeRender = () => {
       material.uniforms.time.value = this.time;
-      requestAnimationFrame(animate);
+      
+      const scale = 1.0 + Math.sin(this.time * 3.0) * 0.2;
+      ring.scale.set(scale, scale, 1.0);
+    
     };
-    animate();
 
     return ring;
   }

@@ -67,16 +67,10 @@ export class Blaster extends BaseWeapon {
         super.onFire();
         
         if (this.shootSound?.buffer) {
-            const clone = new THREE.Audio(this.shootSound.listener);
-            clone.setBuffer(this.shootSound.buffer);
-            clone.setVolume(this.shootSound.getVolume());
-            clone.setLoop(false);
-            clone.play();
-    
-            clone.source.onended = () => {
-                if (clone.parent) clone.parent.remove(clone);
-            };
-            this.model.add(clone);
+            // Reuse a single audio node to avoid per-shot allocations
+            if (this.shootSound.isPlaying) this.shootSound.stop();
+            this.shootSound.setLoop(false);
+            this.shootSound.play();
         }
     
         const muzzleLocal = this.config.muzzlePosition ? this.config.muzzlePosition.clone() : new THREE.Vector3(0, 0, -0.5);
