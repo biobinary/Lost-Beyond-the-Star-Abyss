@@ -16,6 +16,7 @@ export abstract class BaseWeapon implements IWeapon {
   public reserveAmmo: number = 0;
   public damage: number;
   public assetManager: AssetManager;
+  public isReloading: boolean = false;
 
   protected lastShotTime = 0;
   private muzzleLight: THREE.PointLight;
@@ -123,6 +124,14 @@ export abstract class BaseWeapon implements IWeapon {
     this.isRecoiling = true;
     this.recoilTime = 0;
     this.animateMuzzleFlash();
+  }
+
+  protected beginReload(): void {
+    this.isReloading = true;
+  }
+
+  protected endReload(): void {
+    this.isReloading = false;
   }
 
   private handleSway(elapsedTime: number) {

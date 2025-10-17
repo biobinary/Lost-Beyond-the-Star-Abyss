@@ -59,6 +59,11 @@ export class Shotgun extends BaseWeapon {
 
     public fire(camera: THREE.Camera, scene: THREE.Scene, effects: EffectsManager): void {
 
+        // Cancel ongoing reload if player fires
+        if (this.isReloading) {
+            this.endReload();
+        }
+
         if (!this.canShoot()){
             if (this.emptySound && !this.emptySound.isPlaying && this.ammo <= 0) {
                 this.emptySound?.play();
@@ -156,13 +161,21 @@ export class Shotgun extends BaseWeapon {
             return;
         }
 
-        while (this.ammo < this.maxAmmo && this.reserveAmmo > 0) {
+        if (this.isReloading) return; // prevent duplicate reloads
+        this.beginReload();
+
+        while (this.isReloading && this.ammo < this.maxAmmo && this.reserveAmmo > 0) {
             this.ammo++;
             this.reserveAmmo--;
-            this.playClone(this.reloadSound);
+            // Reuse the pre-created audio node to avoid per-shell allocations
+            if (this.reloadSound && this.reloadSound.isPlaying) {
+                this.reloadSound.stop();
+            }
+            this.reloadSound?.play();
             await this.wait(reloadDelayPerShell);
             weaponManager.updateHUD();
         }
+        this.endReload();
         
         console.log(`${this.config.name} reloaded. Clip: ${this.ammo}/${this.maxAmmo}, Reserve: ${this.reserveAmmo}`);
 
@@ -173,11 +186,9 @@ export class Shotgun extends BaseWeapon {
     }
 
     private playClone(sound?: THREE.Audio) {
+        // Deprecated for reload to reduce GC churn; kept for potential future overlapping SFX needs
         if (!sound?.buffer) return;
-        const clone = new THREE.Audio(this.listener);
-        clone.setBuffer(sound.buffer);
-        clone.setVolume(sound.getVolume());
-        clone.play();
-        clone.source.onended = () => clone.disconnect();
+        if (sound.isPlaying) sound.stop();
+        sound.play();
     }
 }
