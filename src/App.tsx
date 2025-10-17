@@ -14,6 +14,7 @@ import StoryTutorial from "./components/StoryTutorial";
 import CreditsMenu from "./components/CreditsMenu";
 import GameOver from "./components/GameOver";
 import LoadingScreen from "./components/LoadingScreen";
+import Win from "./components/Win";
 import { PodWindowOverlay } from "./components/PodWindowOverlay";
 import { AssetManager } from './systems/AssetManager';
 
@@ -43,6 +44,7 @@ function App() {
   const [showStory, setShowStory] = useState(false);
   const [showCredits, setShowCredits] = useState(false);
   const [isGameOver, setIsGameOver] = useState(false);
+  const [isWin, setIsWin] = useState(false);
   const [assetsLoaded, setAssetsLoaded] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [loadingAssetName, setLoadingAssetName] = useState('');
@@ -97,13 +99,14 @@ function App() {
     setInGame(true);
     setIsPaused(false);
     setIsGameOver(false);
+    setIsWin(false);
   };
 
   const togglePause = useCallback(() => {
-    if (isGameOver) return;
+    if (isGameOver || isWin) return;
     setIsPaused(prev => !prev);
     setShowSettings(false);
-  }, [isGameOver]);
+  }, [isGameOver, isWin]);
 
   const backToMainMenu = () => {
     setInGame(false);
@@ -111,6 +114,7 @@ function App() {
     setShowSettings(false);
     setShowCredits(false);
     setIsGameOver(false);
+    setIsWin(false);
   };
 
   const handleShowCredits = () => {
@@ -121,9 +125,15 @@ function App() {
     setIsGameOver(true);
     setIsPaused(true);
   };
+
+  const handlePlayerWin = () => {
+    setIsWin(true);
+    setIsPaused(true);
+  };
   
   const handleRestart = () => {
     setIsGameOver(false);
+    setIsWin(false);
     setInGame(false);
     if (assetManager) {
       assetManager.dispose();
@@ -192,6 +202,10 @@ function App() {
     return <GameOver onRestart={handleRestart} onMainMenu={backToMainMenu} />;
   }
 
+  if (isWin) {
+    return <Win onRestart={handleRestart} onMainMenu={backToMainMenu}/>
+  }
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
@@ -207,6 +221,7 @@ function App() {
                   onTogglePause={togglePause}
                   isMusicEnabled={isMusicEnabled}
                   onPlayerDied={handlePlayerDied}
+                  onPlayerWin={handlePlayerWin}
                   assetManager={assetManager}
                   showFPS={showFPS}
                 />

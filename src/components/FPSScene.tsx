@@ -14,9 +14,8 @@ import { AssetManager } from "../systems/AssetManager";
 import { WeaponSpawnManager } from "@/systems/WeaponSpawnManager";
 import { HealthItemSpawnManager } from "@/systems/HealthItemSpawnManager";
 import { MonsterSpawnManager } from "@/systems/MonsterManager";
-import { HUD } from "./HUD";
 
-export const FPSScene = ({ isPaused, onTogglePause, isMusicEnabled, onPlayerDied, assetManager }: { isPaused: boolean; onTogglePause: () => void; isMusicEnabled: boolean; onPlayerDied: () => void;assetManager: AssetManager; }) => {
+export const FPSScene = ({ isPaused, onTogglePause, isMusicEnabled, onPlayerDied, onPlayerWin, assetManager }: { isPaused: boolean; onTogglePause: () => void; isMusicEnabled: boolean; onPlayerDied: () => void; onPlayerWin: () => void; assetManager: AssetManager; }) => {
   
   const containerRef = useRef<HTMLDivElement>(null);
   const threeObjects = useThreeSetup(containerRef, assetManager);
@@ -101,6 +100,7 @@ export const FPSScene = ({ isPaused, onTogglePause, isMusicEnabled, onPlayerDied
         cutsceneProgress += delta * 0.075; // adjust speed
         if (cutsceneProgress >= 1) {
           cutsceneProgress = 1;
+          onPlayerWin();
         }
 
         // Interpolate position
