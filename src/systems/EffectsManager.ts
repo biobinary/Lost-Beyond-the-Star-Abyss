@@ -176,6 +176,7 @@ export class EffectsManager {
     trail.rotateX(Math.PI / 2); // Rotate to align cylinder properly
     
     this.scene.add(trail);
+    trail.userData.isEffect = true;
 
     this.trails.push({ mesh: trail, material, geometry, startTime: this.time });
 
@@ -249,6 +250,7 @@ export class EffectsManager {
     const particles = new THREE.Points(geometry, material);
     particles.position.copy(position);
     this.scene.add(particles);
+    particles.userData.isEffect = true;
 
     this.particleEffects.push({ points: particles, material, geometry, startTime: this.time, lifetime: 1.0 });
   }

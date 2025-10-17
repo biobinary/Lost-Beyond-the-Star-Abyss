@@ -102,6 +102,10 @@ export class Shotgun extends BaseWeapon {
             let hitFound = false;
             
             for (const inter of intersects) {
+
+                if (inter.object.userData.isEffect) 
+                    continue;
+
                 let parent: THREE.Object3D | null = inter.object;
                 let belongsToWeapon = false;
                 
