@@ -210,7 +210,7 @@ export class AssetManager {
     
         // ===== MAP & ENVIRONMENT =====
       { type: 'gltf', path: '/models/Map.glb' },
-      { type: 'gltf', path: '/models/NavMesh.glb' },
+      { type: 'gltf', path: '/models/NavMeshTest.glb' },
       { type: 'gltf', path: '/models/EscapePod_Window.glb' },
       { type: 'gltf', path: '/models/freeport_space_station1.glb' },
 

@@ -55,36 +55,41 @@ export class MonsterSpawnManager {
         
         try {
 
-            const gltf = this.assetManager.get<any>('/models/NavMesh.glb');
+            const gltf = this.assetManager.get<any>('/models/NavMeshTest.glb');
 
             gltf.scene.position.set(0, 0, 5);
             gltf.scene.rotation.y = Math.PI / 2;
+            this.scene.add(gltf.scene);
 
             let navmeshFound = false;
 
+            // INI AKU NYOBA-NYOBA, 
+            // HAPUS WAE PAKEK YANG LAEN
+
             gltf.scene.traverse((child) => {
                 if (child instanceof THREE.Mesh && !navmeshFound) {
+                    
                     this.navmesh = child;
 
-                    // Clone + apply transforms
-                    const geometry = this.navmesh.geometry.clone();
-                    this.navmesh.updateWorldMatrix(true, false);
-                    geometry.applyMatrix4(this.navmesh.matrixWorld);
+                    // // Clone + apply transforms
+                    // const geometry = this.navmesh.geometry.clone();
+                    // this.navmesh.updateWorldMatrix(true, false);
+                    // geometry.applyMatrix4(this.navmesh.matrixWorld);
 
-                    // ✅ Clean up geometry before creating zone
-                    let cleanedGeometry = BufferGeometryUtils.mergeVertices(geometry);
+                    // // ✅ Clean up geometry before creating zone
+                    // let cleanedGeometry = BufferGeometryUtils.mergeVertices(geometry);
 
-                    // Optional: check for negative scale
-                    const s = this.navmesh.scale;
-                    if (s.x * s.y * s.z < 0) {
-                        cleanedGeometry.scale(-1, 1, 1);
-                    }
+                    // // Optional: check for negative scale
+                    // const s = this.navmesh.scale;
+                    // if (s.x * s.y * s.z < 0) {
+                    //     cleanedGeometry.scale(-1, 1, 1);
+                    // }
 
                     // ✅ Create zone data from cleaned geometry
-                    const zoneData = Pathfinding.createZone(cleanedGeometry);
+                    const zoneData = Pathfinding.createZone(this.navmesh.geometry);
                     this.pathfinding.setZoneData(this.ZONE, zoneData);
 
-                    geometry.dispose();
+                    // geometry.dispose();
                     navmeshFound = true;
                 }
             });
@@ -105,8 +110,8 @@ export class MonsterSpawnManager {
     
         const points: { position: THREE.Vector3, rotationY?: number }[] = [
             { position: new THREE.Vector3(0, 0, -5), rotationY: 0 },
-            { position: new THREE.Vector3(0, 0, -10) },
-            { position: new THREE.Vector3(-25, 0, -52) },
+            // { position: new THREE.Vector3(0, 0, -10) },
+            // { position: new THREE.Vector3(-25, 0, -52) },
         ];
 
         points.forEach(point => {
