@@ -43,7 +43,7 @@ export class Monster {
     private lastPathCalculationTime: number = 0;
     private readonly PATH_CALCULATION_COOLDOWN = 150; // ✅ Balanced: 150ms between path recalculations
     
-    private readonly ENABLE_PATHFINDING_HELPER = true; // Set to true to see path visualization
+    private readonly ENABLE_PATHFINDING_HELPER = false; // Set to true to see path visualization
     private readonly DEBUG_PATH = false; // Custom debug line (optional, keep false if using PathfindingHelper)
     private debugPathLine: THREE.Line | null = null;
     

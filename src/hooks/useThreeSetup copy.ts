@@ -132,7 +132,7 @@ export const useThreeSetup = (containerRef: React.RefObject<HTMLDivElement>, ass
     const boxGeometry = new THREE.BoxGeometry(5, 5, 5);
     const boxMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true });
     const detectionBox = new THREE.Mesh(boxGeometry, boxMaterial);
-    detectionBox.position.set(6, 2.5, -44.5);
+    detectionBox.position.set(-6, 2.5, -44.5);
     detectionBox.visible = false;
     scene.add(detectionBox);
 
