@@ -46,10 +46,10 @@ export class WeaponSpawnManager {
     private async initializeSpawnPoints() {
 
         const points = [
-            { position: new THREE.Vector3(13.5, 1, -21), weapon: new Blaster(this.listener, this.assetManager) },
-            { position: new THREE.Vector3(-28, 1, -52), weapon: new Shotgun(this.listener, this.assetManager) },
-            { position: new THREE.Vector3(-25, 1, -52), weapon: new Shotgun(this.listener, this.assetManager) },
-            { position: new THREE.Vector3(-6, 1, -1), weapon: new Blaster(this.listener, this.assetManager) },
+            { position: new THREE.Vector3(-13.5, 1, -21), weapon: new Blaster(this.listener, this.assetManager) },
+            { position: new THREE.Vector3(28, 1, -52), weapon: new Shotgun(this.listener, this.assetManager) },
+            { position: new THREE.Vector3(25, 1, -52), weapon: new Shotgun(this.listener, this.assetManager) },
+            { position: new THREE.Vector3(6, 1, -1), weapon: new Blaster(this.listener, this.assetManager) },
         ];
 
         for (const point of points) {

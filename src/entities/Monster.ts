@@ -39,6 +39,13 @@ export class Monster {
     private readonly zone: string;
     private path: THREE.Vector3[] = [];
     private currentPathTarget: THREE.Vector3 | null = null;
+
+    private lastPathCalculationTime: number = 0;
+    private readonly PATH_CALCULATION_COOLDOWN = 150; // ✅ Balanced: 150ms between path recalculations
+    
+    private readonly ENABLE_PATHFINDING_HELPER = true; // Set to true to see path visualization
+    private readonly DEBUG_PATH = false; // Custom debug line (optional, keep false if using PathfindingHelper)
+    private debugPathLine: THREE.Line | null = null;
     
     // State & Position
     private state: MonsterState = MonsterState.PATROL;
@@ -55,6 +62,12 @@ export class Monster {
     
     // Configuration
     public readonly config: MonsterConfig;
+    
+    private lastCacheUpdate: number = 0;
+    private readonly CACHE_DURATION = 100; // ✅ Single unified cache duration
+    private cachedPlayerPosition: THREE.Vector3 = new THREE.Vector3();
+    private cachedDistanceToPlayer: number = Infinity;
+    private cachedLineOfSight: boolean = false;
 
     constructor(
         private readonly scene: THREE.Scene,
@@ -73,8 +86,13 @@ export class Monster {
         this.defaultRotationY = rotationY;
         this.assetManager = assetManager;
 
+        // ✅ Initialize PathfindingHelper for visual debugging
         this.pathfindingHelper = new PathfindingHelper();
-        this.scene.add(this.pathfindingHelper);
+        
+        if (this.ENABLE_PATHFINDING_HELPER) {
+            this.scene.add(this.pathfindingHelper);
+            console.log('✅ PathfindingHelper visualization enabled');
+        }
     }
 
     public get health(): number {
@@ -150,10 +168,13 @@ export class Monster {
 
         this.mixer?.update(deltaTime);
 
-        const playerPosition = this.getPlayerGroundPosition(player);
-        const distanceToPlayer = this.model.position.distanceTo(playerPosition);
+        this.updateCaches(player);
 
-        this.updateState(distanceToPlayer, playerPosition, deltaTime, player);
+        this.updateState(this.cachedDistanceToPlayer, this.cachedPlayerPosition, deltaTime, player);
+        
+        if (this.ENABLE_PATHFINDING_HELPER && this.path.length > 0 && Math.random() < 0.05) {
+            this.pathfindingHelper.setPlayerPosition(this.model.position);
+        }
     }
 
     /**
@@ -189,8 +210,9 @@ export class Monster {
         
         if (!this.model) return;
 
-        // Check for player detection
-        if (this.canSeePlayer(playerPosition) && distanceToPlayer <= this.config.detectionRadius) {
+        // ✅ Check for player detection (no line of sight required, just distance)
+        if (distanceToPlayer <= this.config.detectionRadius) {
+            console.log('🔴 Monster detected player! Switching to CHASING');
             this.state = MonsterState.CHASING;
             this.clearPath();
             return;
@@ -198,7 +220,8 @@ export class Monster {
 
         // Continue patrolling
         const distanceToPatrolTarget = this.model.position.distanceTo(this.currentPatrolTarget);
-        if (distanceToPatrolTarget < 0.5) {
+        
+        if (distanceToPatrolTarget < 1.0) {
             this.setNewPatrolTarget();
         } else {
             this.followPathTo(this.currentPatrolTarget, this.config.speed * 0.5, deltaTime);
@@ -211,22 +234,27 @@ export class Monster {
      */
     private handleChasingState(deltaTime: number, playerPosition: THREE.Vector3, distanceToPlayer: number): void {
         
-        const lostPlayer = distanceToPlayer > this.config.detectionRadius * 3 || 
-                          !this.canSeePlayer(playerPosition);
+        const CHASE_ABANDON_MULTIPLIER = 2.0; // Will be 30.0 units with detectionRadius 15.0
+        const CHASE_ABANDON_DISTANCE = this.config.detectionRadius * CHASE_ABANDON_MULTIPLIER;
+        const lostPlayer = distanceToPlayer > CHASE_ABANDON_DISTANCE;
 
         if (lostPlayer) {
+            console.log('🔵 Monster lost player. Returning to PATROL');
             this.state = MonsterState.PATROL;
             this.clearPath();
             this.setNewPatrolTarget();
             return;
         }
 
+        // ✅ Check if close enough to attack
         if (distanceToPlayer <= this.config.attackRadius) {
+            console.log('🔴 Monster in attack range!');
             this.state = MonsterState.ATTACKING;
             this.clearPath();
             return;
         }
 
+        // ✅ Chase at full speed
         this.followPathTo(playerPosition, this.config.speed, deltaTime);
     
     }
@@ -273,13 +301,16 @@ export class Monster {
             return true;
         }
 
-        // 2. In CHASING state, only recalculate if the current path target is
-        //    significantly far from the player, indicating the player has moved
-        //    substantially since the last calculation (prevents recalculating every frame).
+        const now = performance.now();
+        const timeSinceLastCalculation = now - this.lastPathCalculationTime;
+        if (timeSinceLastCalculation < this.PATH_CALCULATION_COOLDOWN) {
+            return false; // Still in cooldown, use existing path
+        }
+
+        // 2. In CHASING state, recalculate only when player moves significantly
         if (this.state === MonsterState.CHASING) {
-            // Check if the current path target (which is the player's last position when path was calculated)
-            // is far from the player's *current* position. Use a larger threshold (e.g., 2.0-5.0 units).
-            const RECALCULATION_THRESHOLD = 3.0; 
+            // ✅ Balanced threshold for good response without excessive recalculation
+            const RECALCULATION_THRESHOLD = 4.0; 
             if (this.currentPathTarget && this.currentPathTarget.distanceTo(targetPosition) > RECALCULATION_THRESHOLD) {
                 return true;
             }
@@ -287,7 +318,7 @@ export class Monster {
         
         // 3. In PATROL state, recalculate if the target has changed more than a small tolerance.
         if (this.state === MonsterState.PATROL) {
-            const TARGET_CHANGE_TOLERANCE = 0.5;
+            const TARGET_CHANGE_TOLERANCE = 1.0;
             if (this.currentPathTarget && this.currentPathTarget.distanceTo(targetPosition) > TARGET_CHANGE_TOLERANCE) {
                  // This should only happen if the patrol target was just set.
                  return true;
@@ -307,15 +338,41 @@ export class Monster {
 
         const groupID = this.pathfinding.getGroup(this.zone, this.model.position);
         if (groupID === null) {
-            console.warn('Monster outside navmesh group');
+            console.warn('⚠️ Monster outside navmesh at:', this.model.position.toArray());
+            
+            // Try to find closest point on navmesh and snap to it
+            const allGroups = [0, 1, 2, 3, 4]; // Try common group IDs
+            for (const testGroupID of allGroups) {
+                try {
+                    const closestNode = this.pathfinding.getClosestNode(this.model.position, this.zone, testGroupID);
+                    if (closestNode?.centroid) {
+                        console.log('✅ Snapping monster to navmesh at:', closestNode.centroid.toArray());
+                        this.model.position.copy(closestNode.centroid);
+                        return this.calculatePath(targetPosition); // Retry with new position
+                    }
+                } catch (e) {
+                    // Try next group
+                }
+            }
             return;
         }
         
-        const closest = this.pathfinding.getClosestNode(this.model.position, this.zone, groupID);
+        const startNode = this.pathfinding.getClosestNode(this.model.position, this.zone, groupID);
+        const targetNode = this.pathfinding.getClosestNode(targetPosition, this.zone, groupID);
+
+        // ✅ Validate nodes before pathfinding
+        if (!startNode?.centroid) {
+            console.error('❌ No valid start node for pathfinding');
+            return;
+        }
+
+        if (!targetNode?.centroid) {
+            console.warn('⚠️ Target position outside navmesh, using closest point');
+        }
 
         const newPath = this.pathfinding.findPath(
-            closest.centroid,
-            targetPosition,
+            startNode.centroid,
+            targetNode?.centroid || targetPosition,
             this.zone,
             groupID
         );
@@ -323,11 +380,21 @@ export class Monster {
         if (newPath && newPath.length > 0) {
             this.path = newPath;
             this.currentPathTarget = targetPosition.clone();
-            // this.pathfindingHelper.reset();
-            // this.pathfindingHelper.setPlayerPosition(this.model.position);
-            // this.pathfindingHelper.setTargetPosition(targetPosition);
-            // this.pathfindingHelper.setPath(this.path);
+            
+            this.lastPathCalculationTime = performance.now();
+
+            if (this.ENABLE_PATHFINDING_HELPER && this.model) {
+                this.pathfindingHelper.reset();
+                this.pathfindingHelper.setPlayerPosition(this.model.position);
+                this.pathfindingHelper.setTargetPosition(targetPosition);
+                this.pathfindingHelper.setPath(this.path);
+            }
+            
+            if (this.DEBUG_PATH) {
+                this.updateDebugPath();
+            }
         } else {
+            console.warn('⚠️ No path found to target');
             this.clearPath();
         }
 
@@ -342,7 +409,8 @@ export class Monster {
         const nextWaypoint = this.path[0];
         const position = this.model.position;
 
-        const WAYPOINT_TOLERANCE = 0.25; 
+        // ✅ Adjusted tolerance - slightly larger for smoother movement (was 0.25, now 0.5)
+        const WAYPOINT_TOLERANCE = 0.5; 
         const distanceToWaypoint = position.distanceTo(nextWaypoint);
 
         if (distanceToWaypoint < WAYPOINT_TOLERANCE) {
@@ -366,7 +434,9 @@ export class Monster {
         
         if (distance > 0.001) {
             direction.normalize();
-            this.model.position.addScaledVector(direction, moveDistance);
+            
+            const finalMoveDistance = Math.min(moveDistance, distanceToWaypoint);
+            this.model.position.addScaledVector(direction, finalMoveDistance);
         }
     }
 
@@ -376,7 +446,19 @@ export class Monster {
     private clearPath(): void {
         this.path = [];
         this.currentPathTarget = null;
-        // this.pathfindingHelper.setPath([]);
+        
+        // ✅ Clear PathfindingHelper visualization
+        if (this.ENABLE_PATHFINDING_HELPER) {
+            this.pathfindingHelper.setPath([]);
+        }
+        
+        // ✅ Clear custom debug visualization
+        if (this.DEBUG_PATH && this.debugPathLine) {
+            this.scene.remove(this.debugPathLine);
+            this.debugPathLine.geometry.dispose();
+            (this.debugPathLine.material as THREE.Material).dispose();
+            this.debugPathLine = null;
+        }
     }
 
     // ==================== Patrol Logic ====================
@@ -415,8 +497,8 @@ export class Monster {
         if (!this.model) return [];
 
         const candidates: THREE.Vector3[] = [];
-        const attemptCount = 10; // Reduced attempts, less expensive
-        const minDistance = 3.0; // Ensure movement before pathfinding
+        const attemptCount = 25; 
+        const minDistance = 3.0; 
 
         for (let i = 0; i < attemptCount; i++) {
             // Generate a truly random point within a circle around initialPosition
@@ -439,8 +521,10 @@ export class Monster {
                 
                 // Check distance constraints after clamping to the navmesh
                 const distanceToMonster = this.model.position.distanceTo(navmeshPoint);
+                const distanceFromInitial = this.initialPosition.distanceTo(navmeshPoint);
 
-                if (distanceToMonster > minDistance && distanceToMonster < this.config.patrolRadius + 1.0) {
+                if (distanceToMonster > minDistance && 
+                    distanceFromInitial <= this.config.patrolRadius + 5.0) {
                     candidates.push(navmeshPoint);
                 }
             }
@@ -554,6 +638,22 @@ export class Monster {
         
         return intersects.length === 0 || intersects[0].distance > distanceToPlayer;
     }
+    
+
+    private updateCaches(player: PlayerController): void {
+        const now = performance.now();
+        
+        if (now - this.lastCacheUpdate > this.CACHE_DURATION) {
+            // Update all caches together to maintain consistency
+            this.cachedPlayerPosition.copy(this.getPlayerGroundPosition(player));
+            this.cachedDistanceToPlayer = this.model 
+                ? this.model.position.distanceTo(this.cachedPlayerPosition) 
+                : Infinity;
+            this.cachedLineOfSight = this.canSeePlayer(this.cachedPlayerPosition);
+            
+            this.lastCacheUpdate = now;
+        }
+    }
 
     /**
      * Gets player position at ground level
@@ -617,8 +717,39 @@ export class Monster {
      * Disposes of pathfinding resources
      */
     private disposePathfinding(): void {
-        this.scene.remove(this.pathfindingHelper);
+        if (this.ENABLE_PATHFINDING_HELPER) {
+            this.scene.remove(this.pathfindingHelper);
+        }
         this.clearPath();
+    }
+
+    /**
+     * ✅ Update debug path visualization
+     */
+    private updateDebugPath(): void {
+        if (!this.model || !this.DEBUG_PATH) return;
+
+        // Remove old debug line
+        if (this.debugPathLine) {
+            this.scene.remove(this.debugPathLine);
+            this.debugPathLine.geometry.dispose();
+            (this.debugPathLine.material as THREE.Material).dispose();
+        }
+
+        // Create new debug line
+        if (this.path.length > 0) {
+            const points = [this.model.position.clone(), ...this.path];
+            const geometry = new THREE.BufferGeometry().setFromPoints(points);
+            const material = new THREE.LineBasicMaterial({ 
+                color: 0xff0000, 
+                linewidth: 3,
+                transparent: true,
+                opacity: 0.7
+            });
+            
+            this.debugPathLine = new THREE.Line(geometry, material);
+            this.scene.add(this.debugPathLine);
+        }
     }
 
 }
