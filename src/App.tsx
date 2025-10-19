@@ -217,6 +217,7 @@ function App() {
               path="/"
               element={
                 <Index
+                  onToggleMusic={toggleMusic}
                   isPaused={isPaused}
                   onTogglePause={togglePause}
                   isMusicEnabled={isMusicEnabled}

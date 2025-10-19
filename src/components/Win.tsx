@@ -166,7 +166,7 @@ const Win: React.FC<WinProps> = ({ onRestart, onMainMenu }) => {
 
         {/* Warning Text */}
         <p className="text-green-400/60 text-xs md:text-sm font-mono mt-4 animate-pulse italic">
-          &gt; All systems operational. Contacting to HQ.
+          &gt; All systems operational. Contacting HQ.
         </p>
       </div>
 

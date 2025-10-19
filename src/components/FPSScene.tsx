@@ -1,6 +1,9 @@
 // src/components/FPSScene.tsx
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
+import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
+import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 import { useThreeSetup } from "../hooks/useThreeSetup copy";
 import { InputManager } from "../systems/InputManager";
 import { PlayerController } from "../systems/PlayerController";
@@ -15,7 +18,7 @@ import { WeaponSpawnManager } from "@/systems/WeaponSpawnManager";
 import { HealthItemSpawnManager } from "@/systems/HealthItemSpawnManager";
 import { MonsterSpawnManager } from "@/systems/MonsterManager";
 
-export const FPSScene = ({ isPaused, onTogglePause, isMusicEnabled, onPlayerDied, onPlayerWin, assetManager }: { isPaused: boolean; onTogglePause: () => void; isMusicEnabled: boolean; onPlayerDied: () => void; onPlayerWin: () => void; assetManager: AssetManager; }) => {
+export const FPSScene = ({ onToggleMusic, isPaused, onTogglePause, isMusicEnabled, onPlayerDied, onPlayerWin, assetManager }: { onToggleMusic: () => void, isPaused: boolean; onTogglePause: () => void; isMusicEnabled: boolean; onPlayerDied: () => void; onPlayerWin: () => void; assetManager: AssetManager; }) => {
   
   const containerRef = useRef<HTMLDivElement>(null);
   const threeObjects = useThreeSetup(containerRef, assetManager);
@@ -40,13 +43,36 @@ export const FPSScene = ({ isPaused, onTogglePause, isMusicEnabled, onPlayerDied
     };
 
     const handlePlayerDied = () => {
-        onPlayerDied();
+      onPlayerDied();
     }
 
     window.addEventListener('togglePause', handleTogglePause);
     window.addEventListener('playerDied', handlePlayerDied);
 
     const { scene, camera, renderer, colliders, listener, detectionArea  } = threeObjects;
+
+    const renderScene = new RenderPass(scene, camera);
+
+    const bloomPass = new UnrealBloomPass(
+      new THREE.Vector2(window.innerWidth, window.innerHeight),
+      0.65, // strength (try 0.5 - 2.0)
+      0.4,  // radius
+      0.85  // threshold
+    );
+
+    const composer = new EffectComposer(renderer);
+    composer.addPass(renderScene);
+    composer.addPass(bloomPass);
+
+    // Handle resize
+    window.addEventListener("resize", () => {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      renderer.setSize(width, height);
+      composer.setSize(width, height);
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+    });
 
     const inputManager = new InputManager(renderer.domElement);
     const playerController = new PlayerController(camera, inputManager, colliders);
@@ -121,7 +147,7 @@ export const FPSScene = ({ isPaused, onTogglePause, isMusicEnabled, onPlayerDied
         startCutscene();
       }
 
-      renderer.render(scene, camera);
+      composer.render();
     };
 
     animate();
@@ -130,7 +156,6 @@ export const FPSScene = ({ isPaused, onTogglePause, isMusicEnabled, onPlayerDied
       startRot.copy(camera.rotation);
 
       window.dispatchEvent(new CustomEvent("fadeScreen", { detail: { toBlack: true, duration: 1000 } }));
-
       // Wait a bit, then move camera or start cutscene
       setTimeout(() => {
         weaponManager.disposeAll();
@@ -146,8 +171,7 @@ export const FPSScene = ({ isPaused, onTogglePause, isMusicEnabled, onPlayerDied
         
         // Fade back
         window.dispatchEvent(new CustomEvent("fadeScreen", { detail: { toBlack: false, duration: 1000 } }));
-      }, 1500);
-      
+      }, 1500);      
     }
 
     async function loadObject(modelName: string, xPos: number, yPos: number, zPos: number, ydeg: number, xdeg: number, scale: number, visible: boolean){

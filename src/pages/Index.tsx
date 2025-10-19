@@ -3,10 +3,10 @@ import { FPSScene } from "@/components/FPSScene";
 import { HUD } from "@/components/HUD";
 import { AssetManager } from "@/systems/AssetManager";
 
-const Index = ({ isPaused, onTogglePause, isMusicEnabled, onPlayerDied, onPlayerWin, assetManager, showFPS }: { isPaused: boolean; onTogglePause: () => void; isMusicEnabled: boolean, onPlayerDied: () => void; onPlayerWin: () => void; assetManager: AssetManager; showFPS: boolean; }) => {
+const Index = ({ onToggleMusic, isPaused, onTogglePause, isMusicEnabled, onPlayerDied, onPlayerWin, assetManager, showFPS }: { onToggleMusic: () => void; isPaused: boolean; onTogglePause: () => void; isMusicEnabled: boolean, onPlayerDied: () => void; onPlayerWin: () => void; assetManager: AssetManager; showFPS: boolean; }) => {
   return (
     <main className="relative w-full h-screen overflow-hidden bg-background">
-      <FPSScene isPaused={isPaused} onTogglePause={onTogglePause} isMusicEnabled={isMusicEnabled} onPlayerDied={onPlayerDied} onPlayerWin={onPlayerWin} assetManager={assetManager} />
+      <FPSScene onToggleMusic={onToggleMusic} isPaused={isPaused} onTogglePause={onTogglePause} isMusicEnabled={isMusicEnabled} onPlayerDied={onPlayerDied} onPlayerWin={onPlayerWin} assetManager={assetManager} />
       <HUD showFPS={showFPS} />
     </main>
   );
